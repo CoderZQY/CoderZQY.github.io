@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="八数码游戏1. 八数码简介八数码问题也称为九宫问题。在3×3的方格棋盘上，摆有八个棋子，每个棋子上标有1至8的某一数字，不同棋子上标的数字不相同。棋盘上还有一个空格，与空格相邻的棋子可以移到空格中。 要求解决的问题是：给出一个初始状态和一个目标状态，找出一种从初始转变成目标状态的移动棋子的步骤。 所谓问题的一个状态就是棋子在棋盘上的一种摆法。解八数码问题实际上就是找出从初始状态到达目标状态所经过的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="八数码">
+<meta property="og:url" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/index.html">
+<meta property="og:site_name" content="君莫良の博客">
+<meta property="og:description" content="八数码游戏1. 八数码简介八数码问题也称为九宫问题。在3×3的方格棋盘上，摆有八个棋子，每个棋子上标有1至8的某一数字，不同棋子上标的数字不相同。棋盘上还有一个空格，与空格相邻的棋子可以移到空格中。 要求解决的问题是：给出一个初始状态和一个目标状态，找出一种从初始转变成目标状态的移动棋子的步骤。 所谓问题的一个状态就是棋子在棋盘上的一种摆法。解八数码问题实际上就是找出从初始状态到达目标状态所经过的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image002.gif">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image004.gif">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image006.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211160904296.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image013.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image015.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image017.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211161343363.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image022.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image024.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image026.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211161501547.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image031.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image033.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image035.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image037.jpg">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211161554618.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image042.jpg">
+<meta property="article:published_time" content="2021-02-11T08:01:09.000Z">
+<meta property="article:modified_time" content="2021-02-11T08:51:47.283Z">
+<meta property="article:author" content="君莫良">
+<meta property="article:tag" content="-人工智能 -深度、宽度优先搜索、启发式搜索">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image002.gif">
+
+<link rel="canonical" href="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>八数码 | 君莫良の博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">君莫良の博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一只努力学习编程的猪头少年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">32</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">15</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          八数码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-11 16:01:09 / 修改时间：16:51:47" itemprop="dateCreated datePublished" datetime="2021-02-11T16:01:09+08:00">2021-02-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" itemprop="url" rel="index"><span itemprop="name">人工智能</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="八数码游戏"><a href="#八数码游戏" class="headerlink" title="八数码游戏"></a>八数码游戏</h1><h2 id="1-八数码简介"><a href="#1-八数码简介" class="headerlink" title="1. 八数码简介"></a>1. 八数码简介</h2><p>八数码问题也称为九宫问题。在3×3的方格棋盘上，摆有八个棋子，每个棋子上标有1至8的某一数字，不同棋子上标的数字不相同。棋盘上还有一个空格，与空格相邻的棋子可以移到空格中。</p>
+<p>要求解决的问题是：给出一个初始状态和一个目标状态，找出一种从初始转变成目标状态的移动棋子的步骤。</p>
+<p>所谓问题的一个状态就是棋子在棋盘上的一种摆法。解八数码问题实际上就是找出从初始状态到达目标状态所经过的一系列中间过渡状态。</p>
+<a id="more"></a>
+
+<h2 id="2-八数码问题的状态空间法表示"><a href="#2-八数码问题的状态空间法表示" class="headerlink" title="2. 八数码问题的状态空间法表示"></a>2. 八数码问题的状态空间法表示</h2><h3 id="2-1-状态定义"><a href="#2-1-状态定义" class="headerlink" title="2.1. 状态定义"></a>2.1. 状态定义</h3><p>利用<strong>矩阵</strong>存储每一步的状态，空位用0表示，例如起始状态为：</p>
+<p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image002.gif" alt="img"></p>
+<p>目标状态为：</p>
+<p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image004.gif" alt="img"></p>
+<h3 id="2-2-方向符号定义"><a href="#2-2-方向符号定义" class="headerlink" title="2.2. 方向符号定义"></a>2.2. 方向符号定义</h3><p>搜索时按照URDL的顺序：</p>
+<p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image006.jpg" alt="img"></p>
+<h3 id="2-3-从初始状态到目标状态的求解过程"><a href="#2-3-从初始状态到目标状态的求解过程" class="headerlink" title="2.3. 从初始状态到目标状态的求解过程"></a>2.3. 从初始状态到目标状态的求解过程</h3><p>例：下图为宽度优先搜索算法对应具体搜索路径：</p>
+<p> <img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211160904296.png" alt="image-20210211160904296"></p>
+<h2 id="3-八数码问题的盲目搜索技术概述"><a href="#3-八数码问题的盲目搜索技术概述" class="headerlink" title="3. 八数码问题的盲目搜索技术概述"></a>3. 八数码问题的盲目搜索技术概述</h2><h3 id="3-1-dfs、bfs算法基本原理简要介绍"><a href="#3-1-dfs、bfs算法基本原理简要介绍" class="headerlink" title="3.1. dfs、bfs算法基本原理简要介绍"></a>3.1. dfs、bfs算法基本原理简要介绍</h3><h4 id="3-1-1-深度优先搜索"><a href="#3-1-1-深度优先搜索" class="headerlink" title="3.1.1 深度优先搜索"></a>3.1.1 深度优先搜索</h4><p>​    按照一条路径一直往下深度延伸子节点的算法，直到找到答案为止（由于本实验中数字组合相对较少，不考虑内存超限的情况）。在深度优先搜索的求解过程中使用<strong>Stack</strong>来存储还未搜索的节点，已经搜索过的节点使用一个链表来存储（避免重复的搜索）。如果已经在链表中那么就不在放到栈中，因为之前已经搜索过了，故不需要重复搜索。</p>
+<h4 id="3-1-2-宽度优先搜索"><a href="#3-1-2-宽度优先搜索" class="headerlink" title="3.1.2 宽度优先搜索"></a>3.1.2 宽度优先搜索</h4><p>以接近起始节点的程度依次扩展节点的搜索技术（即：离起始节点近的节点先被扩展），在这个过程中使用<strong>Queue</strong>来存储其中还没有遍历的但是已经发展了的节点，同时使用链表来存储已经搜索过的子节点，然后基本上是和深度优先搜索算法类似。</p>
+<p>扩展节点的原则：先扩展出来的节点之后会优先被扩展（生成其所有的后继节点）</p>
+<h3 id="3-2-dfs、bfs算法流程图"><a href="#3-2-dfs、bfs算法流程图" class="headerlink" title="3.2. dfs、bfs算法流程图"></a>3.2. dfs、bfs算法流程图</h3><h4 id="3-2-1-深度优先搜索算法步骤"><a href="#3-2-1-深度优先搜索算法步骤" class="headerlink" title="3.2.1 深度优先搜索算法步骤"></a>3.2.1 深度优先搜索算法步骤</h4><p>① 把起始节点 S 放到未扩展节点的 OPEN 表（此时OPEN表是一个<strong>堆栈</strong>，后进先出）中。如果此节点为一目标节点，则得到解</p>
+<p>② 如果 OPEN 为一空表，则无解、失败退出</p>
+<p>③ 把第一个节点(记作节点 n )从 OPEN 表移到 CLOSED 表</p>
+<p>④ 如果节点 n 的深度等于最大深度，则转向②</p>
+<p>⑤ 扩展节点 n ，产生其全部后继节点，并把它们放入 OPEN 表的前头。如果没有后继节点，则转向②</p>
+<p>⑥ 如果后继节点中有任一个节点为目标节点，则求得一个解（反向追踪从目标节点到起始节点的路径），成功退出；否则，转向②</p>
+<h4 id="3-2-2-深度优先搜索算法的流程图"><a href="#3-2-2-深度优先搜索算法的流程图" class="headerlink" title="3.2.2 深度优先搜索算法的流程图"></a>3.2.2 深度优先搜索算法的流程图</h4><p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image013.jpg" alt="img"></p>
+<h4 id="3-2-3-宽度优先搜索算法步骤"><a href="#3-2-3-宽度优先搜索算法步骤" class="headerlink" title="3.2.3 宽度优先搜索算法步骤"></a>3.2.3 宽度优先搜索算法步骤</h4><p>① 把起始节点放到 OPEN 表中(如果该起始节点为一目标节点，则得到解)</p>
+<p>② 如果 OPEN 是个空表，则无解，失败退出；否则继续下一步</p>
+<p>③ 把第一个节点(记作节点 n )从 OPEN 表移出，并把它放入 CLOSED 的已扩展节点表中</p>
+<p>④ 扩展节点 n 。如果没有后继节点，则转向第②步</p>
+<p>⑤ 把 n 的所有后继节点放到OPEN表的末端，并提供从这些后继节点回到 n 的指针(记录每一个节点的父节点信息)</p>
+<p>⑥ 如果 n 的任一后继节点是个目标节点，则找到一个解（反向追踪得到从目标节点到起始节点的路径），成功退出，否则转向第②步</p>
+<h4 id="3-2-4-宽度优先搜索算法的流程图"><a href="#3-2-4-宽度优先搜索算法的流程图" class="headerlink" title="3.2.4 宽度优先搜索算法的流程图"></a>3.2.4 宽度优先搜索算法的流程图</h4><p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image015.jpg" alt="img"></p>
+<h2 id="4-八数码问题的启发式搜索技术"><a href="#4-八数码问题的启发式搜索技术" class="headerlink" title="4. 八数码问题的启发式搜索技术"></a>4. 八数码问题的启发式搜索技术</h2><h3 id="4-1-启发式搜索原理"><a href="#4-1-启发式搜索原理" class="headerlink" title="4.1. 启发式搜索原理"></a>4.1. 启发式搜索原理</h3><p>启发式搜索就是在状态空间中的搜索对每一个搜索的位置进行评估，得到最好的位置，再从这个位置进行搜索直到目标。这样可以省略大量无谓的搜索路径，提高了效率。在启发式搜索中，对位置的估价是十分重要的。采用了不同的估价可以有不同的效果。</p>
+<h3 id="4-2-估价函数"><a href="#4-2-估价函数" class="headerlink" title="4.2. 估价函数"></a>4.2. 估价函数</h3><p>用f(n)来表示节点n的估价函数，公式表示为： f(n)=g(n)+h(n),其中：</p>
+<p>f(n) 是从初始状态经由状态n到目标状态的代价估计，称作估价函数</p>
+<p>d(n) 是在状态空间从初始状态到状态n的实际代价，称作节点深度</p>
+<p>h(n) 是从状态n到目标状态的的估计代价，称作启发函数</p>
+<h3 id="4-3-估价函数设计"><a href="#4-3-估价函数设计" class="headerlink" title="4.3. 估价函数设计"></a>4.3. 估价函数设计</h3><p>估价函数是由两部分构成的，节点深度d(n)其实就是当前已经走的步数，不用额外设计函数；启发函数h(n)是比较重要的一个部分，启发函数的设计直接影响了估计函数的效率，有几种定义方法：</p>
+<ul>
+<li><p>当前节点与目标节点差异的度量 =&gt; 当前结点与目标节点相比，位置不符的数字个数</p>
+</li>
+<li><p>当前节点与目标节点距离的度量 =&gt; 当前结点与目标节点格局位置不符的数字移动到目标节点中对应位置的最短距离之和</p>
+</li>
+<li><p>每一对逆序数字的某倍数，位置不符的数字个数的总和+逆序数的三倍</p>
+</li>
+</ul>
+<p>这里选择的是第一种，计算当前节点与目标节点相比，有多少个数字的位置不符</p>
+<h3 id="4-4-算法描述"><a href="#4-4-算法描述" class="headerlink" title="4.4. 算法描述"></a>4.4. 算法描述</h3><p>① 把起始节点S放到OPEN表中，并计算节点S的；</p>
+<p>② 如果OPEN是空表，则失败退出（无解）；</p>
+<p>③ 从OPEN表中选择一个f值最小的节点i。如果有几个节点值相同，当其中有一个为目标节点时，则选择目标节点；否则就选择其中任一个节点作为节点i；</p>
+<p>④ 把节点 i 从 OPEN 表中移出，并把它放入 CLOSED 的已扩展节点表中</p>
+<p>⑤ 如果 i 是个目标节点，则成功退出（有解）</p>
+<p>⑥ 扩展节点 i ，生成其全部后继节点。对于 i 的每一个后继节点 j ：</p>
+<p>⑦ 转向②</p>
+<h3 id="4-5-算法流程图"><a href="#4-5-算法流程图" class="headerlink" title="4.5. 算法流程图"></a>4.5. 算法流程图</h3><p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image017.jpg" alt="img"></p>
+<h2 id="5．案例及分析"><a href="#5．案例及分析" class="headerlink" title="5．案例及分析"></a>5．案例及分析</h2><h3 id="5-1-取2-1中的例子"><a href="#5-1-取2-1中的例子" class="headerlink" title="5.1. 取2.1中的例子"></a>5.1. 取2.1中的例子</h3><p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211161343363.png" alt="image-20210211161343363"></p>
+<div align="center">表1：八数码问题2.1的运行记录表</div>
+
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>步数</th>
+<th>操作符</th>
+<th>OPEN表  大小</th>
+<th>CLOSED表  大小</th>
+<th>CPU运行时间（ms）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>宽度优先搜索</td>
+<td>3</td>
+<td>ULD</td>
+<td>5</td>
+<td>5</td>
+<td>2</td>
+</tr>
+<tr>
+<td>深度优先搜索</td>
+<td>3</td>
+<td>ULD</td>
+<td>1</td>
+<td>47</td>
+<td>5</td>
+</tr>
+<tr>
+<td>启发式搜索</td>
+<td>3</td>
+<td>ULD</td>
+<td>1</td>
+<td>3</td>
+<td>62</td>
+</tr>
+</tbody></table>
+<p>程序运行结果截图（考虑输出过程的时间）：</p>
+<p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image022.jpg" alt="img"><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image024.jpg" alt="img"><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image026.jpg" alt="img"></p>
+<h3 id="5-2-其他测试的例子-简单"><a href="#5-2-其他测试的例子-简单" class="headerlink" title="5.2. 其他测试的例子(简单)"></a>5.2. 其他测试的例子(简单)</h3><p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211161501547.png" alt="image-20210211161501547"></p>
+<div align="center">表2：上述八数码问题的运行记录表</div>
+
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>步数</th>
+<th>操作符</th>
+<th>OPEN表  大小</th>
+<th>CLOSED表  大小</th>
+<th>CPU运行时间（ms）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>宽度优先搜索</td>
+<td>5</td>
+<td>UULDR</td>
+<td>15</td>
+<td>21</td>
+<td>3</td>
+</tr>
+<tr>
+<td>深度优先搜索</td>
+<td>5</td>
+<td>UULDR</td>
+<td>2</td>
+<td>55</td>
+<td>5</td>
+</tr>
+<tr>
+<td>启发式搜索</td>
+<td>5</td>
+<td>UULDR</td>
+<td>1</td>
+<td>5</td>
+<td>67</td>
+</tr>
+</tbody></table>
+<p>程序运行结果截图（考虑输出过程的时间）：</p>
+<p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image031.jpg" alt="img"><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image033.jpg" alt="img"><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image035.jpg" alt="img"><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image037.jpg" alt="img"></p>
+<h3 id="5-3-其他测试的例子-复杂"><a href="#5-3-其他测试的例子-复杂" class="headerlink" title="5.3. 其他测试的例子(复杂)"></a>5.3. 其他测试的例子(复杂)</h3><p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/image-20210211161554618.png" alt="image-20210211161554618"></p>
+<div align="center">表3：上述八数码问题的运行记录表</div>
+
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>步数</th>
+<th>操作符</th>
+<th>OPEN表  大小</th>
+<th>CLOSED表  大小</th>
+<th>CPU运行时间（ms）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>宽度优先搜索</td>
+<td>16</td>
+<td>URDRUULLDRRDLLUR</td>
+<td>4280</td>
+<td>6856</td>
+<td>808</td>
+</tr>
+<tr>
+<td>深度优先搜索</td>
+<td>16</td>
+<td>URDRUULLDRRDLLUR</td>
+<td>9</td>
+<td>4597</td>
+<td>211</td>
+</tr>
+<tr>
+<td>启发式搜索</td>
+<td>16</td>
+<td>URDRUULLDRRDLLUR</td>
+<td>1</td>
+<td>567</td>
+<td>57</td>
+</tr>
+</tbody></table>
+<p>程序运行结果截图（不输出过程，故不考虑打印结果所用时间）：</p>
+<p><img src="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/clip_image042.jpg" alt="img"></p>
+<h2 id="6．体会与致谢"><a href="#6．体会与致谢" class="headerlink" title="6．体会与致谢"></a>6．体会与致谢</h2><ul>
+<li><p>通过这次实验，我对八数码问题的宽、深度优先搜索有了更深入的了解，同时也习得了启发式搜索的思想。在此也十分感谢老师课程PPT的制作及课上课下的指导，下面谈谈我遇到的问题和收获。</p>
+</li>
+<li><p>综合不同的测试数据结果来看，程序运行时间从小到大的顺序为：启发式搜索、深度优先搜索（确保深度界限满足条件）、宽度优先搜索</p>
+</li>
+<li><p>宽度优先搜索方法能够保证在搜索树中找到一条通向目标节点的最短途径（所用操作符最少），只要结点间可以到达，就一定可以找到一个最优解。</p>
+</li>
+<li><p>深度优先搜索如果不设置深度界限将会耗时特别长，如果深度界限设置的太小则可能导致缺解现象，如果设置的很巧妙则搜索速度很快，综合看来十分不稳定，如何定义一个较好的深度界限有待进一步思考。</p>
+</li>
+<li><p>在经过大量随机初始化九宫格的实验后，发现启发式搜索更加实用有效，能在较复杂情况下求得更加优质的解，但是对于估价函数的定义趋向多元化，如何更好地定义一个估价函数有待深入讨论。</p>
+</li>
+<li><p>缺陷和不足：</p>
+<ul>
+<li>在进行随机初始化九宫格的多次实验时，出现宽度优先搜索和深度优先搜索耗时过长而无结果输出的问题，但启发式搜索可以很好的输出结果；</li>
+<li>只做了宽度优先搜索的提供追踪解，可以输出从初始状态到目标状态的操作符顺序。</li>
+<li>未讨论时间复杂性和空间复杂性。</li>
+</ul>
+</li>
+</ul>
+<h2 id="7．实验程序简单说明"><a href="#7．实验程序简单说明" class="headerlink" title="7．实验程序简单说明"></a>7．实验程序简单说明</h2><p>使用的语言是java，运行环境是IDEA，程序一共用到四个类：<em>EightPuzzle</em>、<em>EightPuzzleMove</em>、<em>EightPuzzleAlgorithm<strong>、</strong>EightPuzzleMain</em>。</p>
+<p>（1）<em>EightPuzzle</em>：定义八数码的状态属性包括存放九宫格的二维数组data、深度depth，估价函数evaluation和启发函数mispositon。方法包括：isSame()判定二维数组data是否相同，进而重写方法equals（为了后面过滤掉重复状态）；print()将二维数组data转成一维输出到控制台(为了节省空间)；getBlankPositon()获取空格(0)的坐标；深拷贝depthClone()；</p>
+<p>（2）<em>EightPuzzleMove</em>：控制空格的移动，包括两个方法isMovable()判定是否可以继续移动（不能出边界）、move()通过输入的方向来进行相应的移动。</p>
+<p>（3）<em>EightPuzzleAlgorithm</em>：主要包括三个算法bfs()宽度优先搜索、boundedDfs()有界限深度优先搜索、A_Star()启发式搜索；除此之外还有一些定义的状态信息、队列、栈、数组等。</p>
+<p>（4）<em>EightPuzzleMain</em>：程序的入口，主要包括起始状态和末状态的输入、三种搜索算法的运行以及方法isSolvable()判断是否有解。</p>
+<p>java代码参考github：<a target="_blank" rel="noopener" href="https://github.com/CoderZQY/EightPuzzle">EightPuzzle</a></p>
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" title="八数码">http://coderzqy.github.io/2021/02/11/人工智能/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD-%E6%B7%B1%E5%BA%A6%E3%80%81%E5%AE%BD%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E3%80%81%E5%90%AF%E5%8F%91%E5%BC%8F%E6%90%9C%E7%B4%A2/" rel="tag"># -人工智能 -深度、宽度优先搜索、启发式搜索</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/03/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="prev" title="操作系统存储管理实验">
+      <i class="fa fa-chevron-left"></i> 操作系统存储管理实验
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/11/Android/" rel="next" title="Android">
+      Android <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AB%E6%95%B0%E7%A0%81%E6%B8%B8%E6%88%8F"><span class="nav-number">1.</span> <span class="nav-text">八数码游戏</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%AB%E6%95%B0%E7%A0%81%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">1. 八数码简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%85%AB%E6%95%B0%E7%A0%81%E9%97%AE%E9%A2%98%E7%9A%84%E7%8A%B6%E6%80%81%E7%A9%BA%E9%97%B4%E6%B3%95%E8%A1%A8%E7%A4%BA"><span class="nav-number">1.2.</span> <span class="nav-text">2. 八数码问题的状态空间法表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="nav-number">1.2.1.</span> <span class="nav-text">2.1. 状态定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%96%B9%E5%90%91%E7%AC%A6%E5%8F%B7%E5%AE%9A%E4%B9%89"><span class="nav-number">1.2.2.</span> <span class="nav-text">2.2. 方向符号定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%BB%8E%E5%88%9D%E5%A7%8B%E7%8A%B6%E6%80%81%E5%88%B0%E7%9B%AE%E6%A0%87%E7%8A%B6%E6%80%81%E7%9A%84%E6%B1%82%E8%A7%A3%E8%BF%87%E7%A8%8B"><span class="nav-number">1.2.3.</span> <span class="nav-text">2.3. 从初始状态到目标状态的求解过程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%85%AB%E6%95%B0%E7%A0%81%E9%97%AE%E9%A2%98%E7%9A%84%E7%9B%B2%E7%9B%AE%E6%90%9C%E7%B4%A2%E6%8A%80%E6%9C%AF%E6%A6%82%E8%BF%B0"><span class="nav-number">1.3.</span> <span class="nav-text">3. 八数码问题的盲目搜索技术概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-dfs%E3%80%81bfs%E7%AE%97%E6%B3%95%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E7%AE%80%E8%A6%81%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1. dfs、bfs算法基本原理简要介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">3.1.1 深度优先搜索</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-%E5%AE%BD%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">3.1.2 宽度优先搜索</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-dfs%E3%80%81bfs%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2. dfs、bfs算法流程图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-1-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E7%AE%97%E6%B3%95%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">3.2.1 深度优先搜索算法步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E7%AE%97%E6%B3%95%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">3.2.2 深度优先搜索算法的流程图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-3-%E5%AE%BD%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E7%AE%97%E6%B3%95%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">3.2.3 宽度优先搜索算法步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-4-%E5%AE%BD%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%E7%AE%97%E6%B3%95%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">3.2.4 宽度优先搜索算法的流程图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%85%AB%E6%95%B0%E7%A0%81%E9%97%AE%E9%A2%98%E7%9A%84%E5%90%AF%E5%8F%91%E5%BC%8F%E6%90%9C%E7%B4%A2%E6%8A%80%E6%9C%AF"><span class="nav-number">1.4.</span> <span class="nav-text">4. 八数码问题的启发式搜索技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%90%AF%E5%8F%91%E5%BC%8F%E6%90%9C%E7%B4%A2%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.1.</span> <span class="nav-text">4.1. 启发式搜索原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E4%BC%B0%E4%BB%B7%E5%87%BD%E6%95%B0"><span class="nav-number">1.4.2.</span> <span class="nav-text">4.2. 估价函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E4%BC%B0%E4%BB%B7%E5%87%BD%E6%95%B0%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.4.3.</span> <span class="nav-text">4.3. 估价函数设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E7%AE%97%E6%B3%95%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.4.4.</span> <span class="nav-text">4.4. 算法描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.4.5.</span> <span class="nav-text">4.5. 算法流程图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5%EF%BC%8E%E6%A1%88%E4%BE%8B%E5%8F%8A%E5%88%86%E6%9E%90"><span class="nav-number">1.5.</span> <span class="nav-text">5．案例及分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%8F%962-1%E4%B8%AD%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-number">1.5.1.</span> <span class="nav-text">5.1. 取2.1中的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E5%85%B6%E4%BB%96%E6%B5%8B%E8%AF%95%E7%9A%84%E4%BE%8B%E5%AD%90-%E7%AE%80%E5%8D%95"><span class="nav-number">1.5.2.</span> <span class="nav-text">5.2. 其他测试的例子(简单)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%85%B6%E4%BB%96%E6%B5%8B%E8%AF%95%E7%9A%84%E4%BE%8B%E5%AD%90-%E5%A4%8D%E6%9D%82"><span class="nav-number">1.5.3.</span> <span class="nav-text">5.3. 其他测试的例子(复杂)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6%EF%BC%8E%E4%BD%93%E4%BC%9A%E4%B8%8E%E8%87%B4%E8%B0%A2"><span class="nav-number">1.6.</span> <span class="nav-text">6．体会与致谢</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7%EF%BC%8E%E5%AE%9E%E9%AA%8C%E7%A8%8B%E5%BA%8F%E7%AE%80%E5%8D%95%E8%AF%B4%E6%98%8E"><span class="nav-number">1.7.</span> <span class="nav-text">7．实验程序简单说明</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="君莫良"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">君莫良</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=36496695&auto=0&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">君莫良</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

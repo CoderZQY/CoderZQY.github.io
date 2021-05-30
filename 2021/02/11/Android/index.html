@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="1. 设计理念天气常常影响着人们的出行，为了给人们提供方便的天气信息以及未来的天气情况，我们开发了这款雷狮APP，用户可以通过我们的APP定位所在的城市，并查看本周的天气情况，此外，我们还制作了一个小游戏，帮助客户在无聊的时候休闲放松。 2. 设计模块 天气预报模块：实现基本的天气预报、通知和分享功能等。 小游戏模块：实现曾经风靡一时的2048小游戏。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android">
+<meta property="og:url" content="http://coderzqy.github.io/2021/02/11/Android/index.html">
+<meta property="og:site_name" content="君莫良の博客">
+<meta property="og:description" content="1. 设计理念天气常常影响着人们的出行，为了给人们提供方便的天气信息以及未来的天气情况，我们开发了这款雷狮APP，用户可以通过我们的APP定位所在的城市，并查看本周的天气情况，此外，我们还制作了一个小游戏，帮助客户在无聊的时候休闲放松。 2. 设计模块 天气预报模块：实现基本的天气预报、通知和分享功能等。 小游戏模块：实现曾经风靡一时的2048小游戏。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/Android/image-20210211175650863.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/Android/image-20210211175519549.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/Android/image-20210211175556801.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/11/Android/image-20210211175803349.png">
+<meta property="article:published_time" content="2021-02-11T08:53:09.000Z">
+<meta property="article:modified_time" content="2021-02-11T10:01:00.899Z">
+<meta property="article:author" content="君莫良">
+<meta property="article:tag" content="Android 2048">
+<meta property="article:tag" content="Android 天气预报">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2021/02/11/Android/image-20210211175650863.png">
+
+<link rel="canonical" href="http://coderzqy.github.io/2021/02/11/Android/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>Android | 君莫良の博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">君莫良の博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一只努力学习编程的猪头少年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">32</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">15</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/02/11/Android/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-11 16:53:09 / 修改时间：18:01:00" itemprop="dateCreated datePublished" datetime="2021-02-11T16:53:09+08:00">2021-02-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-设计理念"><a href="#1-设计理念" class="headerlink" title="1. 设计理念"></a>1. 设计理念</h1><p>天气常常影响着人们的出行，为了给人们提供方便的天气信息以及未来的天气情况，我们开发了这款雷狮APP，用户可以通过我们的APP定位所在的城市，并查看本周的天气情况，此外，我们还制作了一个小游戏，帮助客户在无聊的时候休闲放松。</p>
+<h1 id="2-设计模块"><a href="#2-设计模块" class="headerlink" title="2. 设计模块"></a>2. 设计模块</h1><ol>
+<li>天气预报模块：实现基本的天气预报、通知和分享功能等。</li>
+<li>小游戏模块：实现曾经风靡一时的2048小游戏。</li>
+</ol>
+<a id="more"></a>
+
+<h1 id="3-问题描述"><a href="#3-问题描述" class="headerlink" title="3. 问题描述"></a>3. 问题描述</h1><h2 id="3-1-天气预报模块"><a href="#3-1-天气预报模块" class="headerlink" title="3.1 天气预报模块"></a>3.1 天气预报模块</h2><ul>
+<li><p>如何从网络上获取数据，并解析JSON数据。</p>
+</li>
+<li><p>如何使用SQLite，实现数据的存取。</p>
+</li>
+<li><p>如何设计各个菜单按钮，并实现其功能。</p>
+</li>
+<li><p>如何调用地图实现定位。</p>
+</li>
+<li><p>如何设计后台服务，实现定时通知。</p>
+</li>
+<li><p>如何实现activity与fragment，fragment与fragment之间的通信。</p>
+</li>
+<li><p>如何设计各个UI界面，并实现数据显示，加载网络图片。</p>
+</li>
+</ul>
+<h2 id="3-2-2048游戏模块"><a href="#3-2-2048游戏模块" class="headerlink" title="3.2 2048游戏模块"></a>3.2 2048游戏模块</h2><ul>
+<li><p>游戏的规则：控制所有方块向同一个方向运动，两个相同数字方块撞在一起之后合并成为他们的和，每次操作之后会随机生成一个2或者4，最终得到一个“2048”的方块就算胜利了。</p>
+</li>
+<li><p>设计步骤包括：</p>
+<ul>
+<li>游戏布局设计</li>
+<li>触控交互设计</li>
+<li>游戏卡片、随机数的添加</li>
+<li>逻辑实现</li>
+<li>计分实现</li>
+<li>结束判定</li>
+</ul>
+</li>
+</ul>
+<h1 id="4-设计简要描述"><a href="#4-设计简要描述" class="headerlink" title="4. 设计简要描述"></a>4. 设计简要描述</h1><h2 id="4-1-天气预报模块设计"><a href="#4-1-天气预报模块设计" class="headerlink" title="4.1 天气预报模块设计"></a>4.1 天气预报模块设计</h2><ol>
+<li>因为网络服务延时较长，影响用户体验且Android Studio已不允许在主线程中访问网络，所以获取网络数据，必须开辟一个新的线程。由于需求的JSON数据量不大，采用最原始的JSON数据解析方法，通过JSONObject对象来解析</li>
+<li>对于SQLite使用，根据实验前分析要建立一张天气表，来存放天气的状况，建立一张城市表，来存放当前的城市名。基本逻辑如下：首先获取城市表中最新的城市名，新建线程并利用这个城市名获取JSON数据，解析JSON数据并存入数据库天气表中。UI显示数据时，直接访问数据库，获取数据并显示。</li>
+<li>添加菜单时，需要在activity中添加，不能在fragment中添加。</li>
+<li>对于地图的定位，我们使用高德地图的API来定位，导入jar包，建立地图管理类，使用地图容器，重写各个生命周期。定位成功后，将定位到的城市名存入数据库，否则提示定位失败。</li>
+<li>在使用后台服务时，首先访问网络，获取新的天气数据存入数据库。再打开数据库，通知用户。最后通过延时服务来调用这个后台服务，保证销毁这个APP后，依然可以实现后台通知。</li>
+<li>fragment与activity通信，可以通过回调函数实现，fragment与fragment之间的通信可以通过广播通信实现。</li>
+<li>在设计UI界面时，通过访问数据库获取并显示数据，最后建立线程实现加载网络图片。</li>
+</ol>
+<h2 id="4-2-2048模块设计"><a href="#4-2-2048模块设计" class="headerlink" title="4.2 2048模块设计"></a>4.2 2048模块设计</h2><ol>
+<li>设计2048游戏布局</li>
+<li>实现2048游戏主类GameView</li>
+<li>游戏2048在Android平台的触控交互设计</li>
+<li>实现2048游戏的卡片类</li>
+<li>在2048游戏中添加随机数</li>
+<li>实现2048游戏逻辑</li>
+<li>游戏2048的计分实现</li>
+<li>游戏2048结束检查</li>
+</ol>
+<h1 id="5-项目关键步骤设计"><a href="#5-项目关键步骤设计" class="headerlink" title="5. 项目关键步骤设计"></a>5. 项目关键步骤设计</h1><h2 id="5-1-天气预报模块"><a href="#5-1-天气预报模块" class="headerlink" title="5.1 天气预报模块"></a>5.1 天气预报模块</h2><h3 id="5-1-1-获取天气预报数据"><a href="#5-1-1-获取天气预报数据" class="headerlink" title="5.1.1 获取天气预报数据"></a>5.1.1 获取天气预报数据</h3><ul>
+<li><p>使用免费的天气预报接口openweathermap</p>
+</li>
+<li><p>注册并获取API Key：0be83fe5c1fd854b14095b0cc994539b</p>
+</li>
+<li><p>相关代码如下：</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//免费的天气预报接口：openweathermap</span></span><br><span class="line">   String url = Uri.parse(<span class="string">&quot;https://api.openweathermap.org/data/2.5/forecast?&quot;</span>)</span><br><span class="line">                 .buildUpon()</span><br><span class="line">                 .appendQueryParameter(<span class="string">&quot;q&quot;</span>, cityName)</span><br><span class="line">                 .appendQueryParameter(<span class="string">&quot;appid&quot;</span>, API_KEY)</span><br><span class="line">                 .appendQueryParameter(<span class="string">&quot;mode&quot;</span>, <span class="string">&quot;json&quot;</span>)</span><br><span class="line">                 .build().toString();</span><br><span class="line">   String jsonString = getUrlString(url);</span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * getUrlBytes(String)：从指定URL获取字节流数组</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">byte</span>[] getUrlBytes(String urlSpec) <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">       URL url = <span class="keyword">new</span> URL(urlSpec);</span><br><span class="line">       HttpURLConnection connection = (HttpURLConnection)url.openConnection();</span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           ByteArrayOutputStream out = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">           InputStream in = connection.getInputStream();</span><br><span class="line">           <span class="keyword">if</span>(connection.getResponseCode() != HttpURLConnection.HTTP_OK)&#123;</span><br><span class="line">               <span class="keyword">throw</span> <span class="keyword">new</span> IOException(connection.getResponseMessage()+<span class="string">&quot;:with &quot;</span>+urlSpec);</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">int</span> bytesRead = <span class="number">0</span>;</span><br><span class="line">           <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">           <span class="keyword">while</span> ((bytesRead = in.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">               out.write(buffer, <span class="number">0</span>, bytesRead);</span><br><span class="line">           &#125;</span><br><span class="line">           out.close();</span><br><span class="line">           <span class="keyword">return</span> out.toByteArray();</span><br><span class="line">       &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">           connection.disconnect();</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * getUrlString(String)：将字节流数据转化为String</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">getUrlString</span><span class="params">(String urlSpec)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> String(getUrlBytes(urlSpec));</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="5-1-2-启动一个新的线程，通过JSONobject对象来解析。"><a href="#5-1-2-启动一个新的线程，通过JSONobject对象来解析。" class="headerlink" title="5.1.2 启动一个新的线程，通过JSONobject对象来解析。"></a>5.1.2 启动一个新的线程，通过JSONobject对象来解析。</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;<span class="comment">//创建线程，从网上获取JSON数据</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            jsonObject = <span class="keyword">new</span> JSONObject(jsonString);<span class="comment">//获取json对象</span></span><br><span class="line">            <span class="comment">//数据定义</span></span><br><span class="line">            String cityName;<span class="comment">//城市</span></span><br><span class="line">            <span class="keyword">double</span> temp_max;<span class="comment">//最高温度</span></span><br><span class="line">            <span class="keyword">double</span> temp_min;<span class="comment">//最高温度</span></span><br><span class="line">            <span class="keyword">double</span> pressure;<span class="comment">//气压</span></span><br><span class="line">            <span class="keyword">double</span> humidity;<span class="comment">//湿度</span></span><br><span class="line">            String weatMain;<span class="comment">//天气状况</span></span><br><span class="line">            String weatIcon;<span class="comment">//图标</span></span><br><span class="line">            String date;<span class="comment">//日期</span></span><br><span class="line">            String oldDate = <span class="keyword">null</span>;</span><br><span class="line">            <span class="comment">//解析JSON数据及对数据库的操作</span></span><br><span class="line">            JSONObject city = jsonObject.getJSONObject(<span class="string">&quot;city&quot;</span>);</span><br><span class="line">            cityName = city.getString(<span class="string">&quot;name&quot;</span>);<span class="comment">//城市</span></span><br><span class="line">            Log.i(TAG, <span class="string">&quot;cityName:&quot;</span> + cityName);</span><br><span class="line">            JSONArray list = jsonObject.getJSONArray(<span class="string">&quot;list&quot;</span>);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; list.length(); i++) &#123;</span><br><span class="line">                JSONObject listMain = list.getJSONObject(i);</span><br><span class="line">                JSONObject main = listMain.getJSONObject(<span class="string">&quot;main&quot;</span>);</span><br><span class="line">                temp_max = main.getDouble(<span class="string">&quot;temp_max&quot;</span>);<span class="comment">//最高温度</span></span><br><span class="line">                temp_min = main.getDouble(<span class="string">&quot;temp_min&quot;</span>);<span class="comment">//最低温度</span></span><br><span class="line">                pressure = main.getDouble(<span class="string">&quot;pressure&quot;</span>);</span><br><span class="line">                humidity = main.getDouble(<span class="string">&quot;humidity&quot;</span>);<span class="comment">//湿度</span></span><br><span class="line">                JSONArray weather = listMain.getJSONArray(<span class="string">&quot;weather&quot;</span>);</span><br><span class="line">                JSONObject weatherMain = weather.getJSONObject(<span class="number">0</span>);</span><br><span class="line">                weatMain = weatherMain.getString(<span class="string">&quot;main&quot;</span>);<span class="comment">//天气状况</span></span><br><span class="line">                weatIcon = weatherMain.getString(<span class="string">&quot;icon&quot;</span>);<span class="comment">//图标</span></span><br><span class="line">                JSONObject wind = listMain.getJSONObject(<span class="string">&quot;wind&quot;</span>);</span><br><span class="line">                Double speed = wind.getDouble(<span class="string">&quot;speed&quot;</span>);<span class="comment">//风速</span></span><br><span class="line">                date = listMain.getString(<span class="string">&quot;dt_txt&quot;</span>).substring(<span class="number">0</span>, <span class="number">10</span>);<span class="comment">//时间</span></span><br><span class="line">                <span class="keyword">if</span> (!date.equals(oldDate)) &#123;<span class="comment">//只保存第一次数据</span></span><br><span class="line">                    Log.i(TAG, <span class="string">&quot;date:&quot;</span> + date);</span><br><span class="line">                    values.put(<span class="string">&quot;date&quot;</span>, date);</span><br><span class="line">                    values.put(<span class="string">&quot;weather&quot;</span>, weatMain);</span><br><span class="line">                    values.put(<span class="string">&quot;picture&quot;</span>, weatIcon);</span><br><span class="line">                    values.put(<span class="string">&quot;maxC&quot;</span>, temp_max);</span><br><span class="line">                    values.put(<span class="string">&quot;minC&quot;</span>, temp_min);</span><br><span class="line">                    values.put(<span class="string">&quot;humidity&quot;</span>, humidity);</span><br><span class="line">                    values.put(<span class="string">&quot;pressure&quot;</span>, pressure);</span><br><span class="line">                    values.put(<span class="string">&quot;wind&quot;</span>, speed);</span><br><span class="line">                    db.insert(<span class="string">&quot;weather&quot;</span>, <span class="keyword">null</span>, values);</span><br><span class="line">                    oldDate = date;<span class="comment">//保存时间</span></span><br><span class="line">                    values.clear();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (JSONException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).start();</span><br></pre></td></tr></table></figure>
+<h3 id="5-1-3-SQLite的使用"><a href="#5-1-3-SQLite的使用" class="headerlink" title="5.1.3 SQLite的使用"></a>5.1.3 SQLite的使用</h3><ul>
+<li><p>建立一张天气表，来存放天气的状况</p>
+</li>
+<li><p>建立一张城市表，来存放当前的城市名</p>
+</li>
+<li><p>基本逻辑如下：首先获取城市表中最新的城市名，新建线程并利用这个城市名获取JSON数据，解析JSON数据并存入数据库天气表中。UI显示数据时，直接访问数据库，获取数据并显示。</p>
+</li>
+<li><p>创建表语句如下：</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//存储城市的数据库格式:</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CREATE_CITY= <span class="string">&quot;create table city (cityName text)&quot;</span>;</span><br><span class="line"><span class="comment">//存储未来天气状况的数据库格式:</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CREATE_WEATHER = <span class="string">&quot;create table weather(&quot;</span></span><br><span class="line">        +<span class="string">&quot;date text,&quot;</span></span><br><span class="line">        +<span class="string">&quot;weather text,&quot;</span></span><br><span class="line">        +<span class="string">&quot;picture text,&quot;</span></span><br><span class="line">        +<span class="string">&quot;maxC real,&quot;</span></span><br><span class="line">        +<span class="string">&quot;minC real,&quot;</span></span><br><span class="line">        +<span class="string">&quot;humidity real,&quot;</span></span><br><span class="line">        +<span class="string">&quot;pressure real,&quot;</span></span><br><span class="line">        +<span class="string">&quot;wind real)&quot;</span>;</span><br><span class="line"><span class="keyword">private</span> Context mContext;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">static</span> DatabaseHelper <span class="title">getInstance</span><span class="params">(Context context, String name, SQLiteDatabase.CursorFactory factory, <span class="keyword">int</span> version)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mInstance = <span class="keyword">new</span> DatabaseHelper(context, name, factory, version);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mInstance;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="5-1-4-通过创建线程加载网络图片"><a href="#5-1-4-通过创建线程加载网络图片" class="headerlink" title="5.1.4 通过创建线程加载网络图片"></a>5.1.4 通过创建线程加载网络图片</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 功能:根据网址获取图片对应的Bitmap对象</span></span><br><span class="line"><span class="comment"> * @param path</span></span><br><span class="line"><span class="comment"> * @return Bitmap</span></span><br><span class="line"><span class="comment"> * */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Bitmap <span class="title">getPicture</span><span class="params">(String picture)</span></span>&#123;</span><br><span class="line">    Bitmap bm = <span class="keyword">null</span>;</span><br><span class="line">    URLConnection conn= <span class="keyword">null</span>;</span><br><span class="line">    URL url;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//url = new URL(&quot;https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/&quot;+picture+&quot;.png&quot;);//创建URL对象，目前不可用</span></span><br><span class="line">        <span class="comment">//url = new URL(&quot;http://openweathermap.org/img/w/&quot;+picture+&quot;.png&quot;);//创建URL对象，目前不可用</span></span><br><span class="line">        url = <span class="keyword">new</span> URL(<span class="string">&quot;https://openweathermap.org/img/wn/&quot;</span>+picture+<span class="string">&quot;@2x.png&quot;</span>);</span><br><span class="line">        conn = url.openConnection();<span class="comment">//获取URL对象对应的连接</span></span><br><span class="line">        conn.connect();<span class="comment">//打开连接</span></span><br><span class="line">        InputStream is=conn.getInputStream();<span class="comment">//获取输入流对象</span></span><br><span class="line">        bm= BitmapFactory.decodeStream(is);<span class="comment">//根据输入流对象创建Bitmap对象</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (MalformedURLException e1) &#123;</span><br><span class="line">        e1.printStackTrace();<span class="comment">//输出异常信息</span></span><br><span class="line">    &#125;<span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();<span class="comment">//输出异常信息</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bm;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="5-1-5-后台服务的使用"><a href="#5-1-5-后台服务的使用" class="headerlink" title="5.1.5 后台服务的使用"></a>5.1.5 后台服务的使用</h3><p>首先访问网络，获取新的天气数据存入数据库。再打开数据库，通知用户。最后通过延时服务来调用这个后台服务，保证销毁这个APP后，依然可以实现后台通知。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">String NoticeDate = notice.getDate();</span><br><span class="line">String NoticeWeather = notice.getWeatMain();</span><br><span class="line">String message = <span class="string">&quot;&quot;</span>;</span><br><span class="line"><span class="keyword">if</span>(notice.getWeatMain().equals(<span class="string">&quot;Clear&quot;</span>))&#123;</span><br><span class="line">    message = <span class="string">&quot;天气晴朗，出行游玩注意安全哦~&quot;</span>;</span><br><span class="line">&#125;<span class="keyword">else</span> <span class="keyword">if</span>(notice.getWeatMain().equals(<span class="string">&quot;Rain&quot;</span>))&#123;</span><br><span class="line">    message = <span class="string">&quot;今天有雨，记得出门带伞哦~&quot;</span>;</span><br><span class="line">&#125;<span class="keyword">else</span> <span class="keyword">if</span>(notice.getWeatMain().equals(<span class="string">&quot;Clouds&quot;</span>))&#123;</span><br><span class="line">    message = <span class="string">&quot;今天多云，适宜在家养生~&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//通知信息：</span></span><br><span class="line">NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);</span><br><span class="line">Intent intent1 = <span class="keyword">new</span> Intent(PollService.<span class="keyword">this</span>,MainActivity.class);</span><br><span class="line"><span class="comment">//PendingIntent是对Intent的封装，满足某些条件或触发某些事件后才执行</span></span><br><span class="line">PendingIntent pendingIntent = PendingIntent.getActivity(<span class="keyword">this</span>, <span class="number">0</span> ,intent1,PendingIntent.FLAG_CANCEL_CURRENT);</span><br><span class="line">Notification notification = <span class="keyword">new</span> NotificationCompat.Builder(PollService.<span class="keyword">this</span>,<span class="string">&quot;default&quot;</span>)</span><br><span class="line">        .setContentTitle(NoticeDate+<span class="string">&quot; &quot;</span>+NoticeWeather)</span><br><span class="line">        .setContentText(message)</span><br><span class="line">        .setSmallIcon(R.drawable.sfasf)</span><br><span class="line">        .setContentIntent(pendingIntent)<span class="comment">//点击跳转到主页面</span></span><br><span class="line">        .setAutoCancel(<span class="keyword">true</span>)<span class="comment">//点击后消失</span></span><br><span class="line">        .build();</span><br><span class="line">notificationManager.notify(<span class="number">1</span>,notification);</span><br></pre></td></tr></table></figure>
+<h3 id="5-1-6-列表与详细界面的拼接"><a href="#5-1-6-列表与详细界面的拼接" class="headerlink" title="5.1.6 列表与详细界面的拼接"></a>5.1.6 列表与详细界面的拼接</h3><p>使用fragment容器完成一个屏幕内显示两个activity布局</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;utf-8&quot;</span>?&gt;</span><br><span class="line">&lt;LinearLayout xmlns:android=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span><br><span class="line">    android:orientation=<span class="string">&quot;vertical&quot;</span> android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">    android:layout_height=<span class="string">&quot;match_parent&quot;</span>&gt;</span><br><span class="line">    &lt;fragment</span><br><span class="line">        android:id=<span class="string">&quot;@+id/fragment_phone_detail&quot;</span></span><br><span class="line">        android:name=<span class="string">&quot;com.example.weather.PhoneDetailActivity&quot;</span></span><br><span class="line">        android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">        android:layout_height=<span class="string">&quot;wrap_content&quot;</span>&gt;</span><br><span class="line">    &lt;/fragment&gt;</span><br><span class="line">    &lt;fragment</span><br><span class="line">        android:id=<span class="string">&quot;@+id/fragment_phone_list&quot;</span></span><br><span class="line">        android:name=<span class="string">&quot;com.example.weather.PhoneListActivity&quot;</span></span><br><span class="line">        android:layout_width=<span class="string">&quot;match_parent&quot;</span></span><br><span class="line">        android:layout_height=<span class="string">&quot;wrap_content&quot;</span>&gt;</span><br><span class="line">    &lt;/fragment&gt;</span><br><span class="line"></span><br><span class="line">&lt;/LinearLayout&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="5-1-7-效果图展示"><a href="#5-1-7-效果图展示" class="headerlink" title="5.1.7 效果图展示"></a>5.1.7 效果图展示</h3><p><img src="/2021/02/11/Android/image-20210211175650863.png" alt="image-20210211175650863"></p>
+<h3 id="5-1-8-高德地图定位"><a href="#5-1-8-高德地图定位" class="headerlink" title="5.1.8 高德地图定位"></a>5.1.8 高德地图定位</h3><p>对于地图的定位，我使用高德地图的API来定位，导入jar包，建立地图管理类，使用地图容器，重写各个生命周期。定位成功后，将定位到的城市名存入数据库，否则提示定位失败。</p>
+<ul>
+<li>获取API Key -&gt; cbcdc26a87de7ce1eee52e255b5bf341</li>
+</ul>
+<p><img src="/2021/02/11/Android/image-20210211175519549.png" alt="image-20210211175519549"></p>
+<ul>
+<li>参照高德地图的示例程序和开发手册，实现定位程序</li>
+</ul>
+<p><img src="/2021/02/11/Android/image-20210211175556801.png" alt="image-20210211175556801"></p>
+<h2 id="5-2-2048游戏模块"><a href="#5-2-2048游戏模块" class="headerlink" title="5.2 2048游戏模块"></a>5.2 2048游戏模块</h2><h3 id="5-2-1-触控交互设计"><a href="#5-2-1-触控交互设计" class="headerlink" title="5.2.1 触控交互设计"></a>5.2.1 触控交互设计</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">setOnTouchListener(<span class="keyword">new</span> OnTouchListener() &#123; <span class="comment">// 设置交互方式</span></span><br><span class="line">                                    <span class="comment">// 监听上下左右滑动的这几个动作，再由这几个动作去执行特定的代码，去实现游戏的逻辑</span></span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">float</span> startX, startY, offsetX, offsetY;</span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onTouch</span><span class="params">(View v, MotionEvent event)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">switch</span> (event.getAction()) &#123;</span><br><span class="line">      <span class="keyword">case</span> MotionEvent.ACTION_DOWN:</span><br><span class="line">         startX = event.getX();</span><br><span class="line">         startY = event.getY();</span><br><span class="line">         <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> MotionEvent.ACTION_UP:</span><br><span class="line">         offsetX = event.getX() - startX;</span><br><span class="line">         offsetY = event.getY() - startY;</span><br><span class="line"></span><br><span class="line">         <span class="keyword">if</span> (Math.abs(offsetX) &gt; Math.abs(offsetY)) &#123; <span class="comment">// 加此判断是为了解决当用户向斜方向滑动时程序应如何判断的问题</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (offsetX &lt; -<span class="number">5</span>) &#123;</span><br><span class="line">               swipeLeft();</span><br><span class="line">               <span class="comment">// System.out.println(&quot;left&quot;);</span></span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (offsetX &gt; <span class="number">5</span>) &#123;</span><br><span class="line">               swipeRight();</span><br><span class="line">               <span class="comment">// System.out.println(&quot;right&quot;);</span></span><br><span class="line">            &#125;</span><br><span class="line">         &#125; <span class="keyword">else</span> &#123; <span class="comment">// 判断向上向下</span></span><br><span class="line">            <span class="keyword">if</span> (offsetY &lt; -<span class="number">5</span>) &#123;</span><br><span class="line">               swipeUp();</span><br><span class="line">               <span class="comment">// System.out.println(&quot;up&quot;);</span></span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (offsetY &gt; <span class="number">5</span>) &#123;</span><br><span class="line">               swipeDown();</span><br><span class="line">               <span class="comment">// System.out.println(&quot;down&quot;);</span></span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">         <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>; <span class="comment">// 此处必须返回true,如返回false，则只会监听到MotionEvent.ACTION_DOWN这个事件，返回此事件没有成功，所以后面的事件也不会发生</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="5-2-2-主要逻辑设计（以左滑为例）"><a href="#5-2-2-主要逻辑设计（以左滑为例）" class="headerlink" title="5.2.2 主要逻辑设计（以左滑为例）"></a>5.2.2 主要逻辑设计（以左滑为例）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实现游戏逻辑 只要有位置的改变就添加新的</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">swipeLeft</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="keyword">boolean</span> merge = <span class="keyword">false</span>; <span class="comment">// 判断是否有合并，如果有的话就进行一些处理</span></span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> y = <span class="number">0</span>; y &lt; <span class="number">4</span>; y++) &#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> x = <span class="number">0</span>; x &lt; <span class="number">4</span>; x++) &#123;</span><br><span class="line">         <span class="keyword">for</span> (<span class="keyword">int</span> x1 = x + <span class="number">1</span>; x1 &lt; <span class="number">4</span>; x1++) &#123; <span class="comment">// 从当前的位置往右边去遍历</span></span><br><span class="line">            <span class="keyword">if</span> (cardsMap[x1][y].getNum() &gt; <span class="number">0</span>) &#123; <span class="comment">// 如果往右去遍历得到的card的值（获取到的值）不是空的，则做如下逻辑判断</span></span><br><span class="line">               <span class="keyword">if</span> (cardsMap[x][y].getNum() &lt;= <span class="number">0</span>) &#123; <span class="comment">// 如果当前位置上的值是空的，则将获取到的值移动到当前位置上</span></span><br><span class="line">                  cardsMap[x][y].setNum(cardsMap[x1][y].getNum());</span><br><span class="line">                  cardsMap[x1][y].setNum(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">                  x--; <span class="comment">// 这里非常重要！！！！ 可以测试理解</span></span><br><span class="line">                  merge = <span class="keyword">true</span>;</span><br><span class="line">               &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cardsMap[x][y].equals(cardsMap[x1][y])) &#123; <span class="comment">// 如果当前位置上的值不是空的，而且获取到的值与当前位置上的值相等，则做相加处理，并将结果放在当前位置上</span></span><br><span class="line">                  cardsMap[x][y].setNum(cardsMap[x][y].getNum() * <span class="number">2</span>);</span><br><span class="line">                  cardsMap[x1][y].setNum(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">                  <span class="comment">// 合并时加分 有合并就有添加（分数）</span></span><br><span class="line">                  MainActivity.getMainActivity().addScore(</span><br><span class="line">                        cardsMap[x][y].getNum());</span><br><span class="line">                  merge = <span class="keyword">true</span>;</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">break</span>; <span class="comment">// 这个break的位置非常重要！！！！！ 只能写在这里！！ eg:方格最下面一行是2 32</span></span><br><span class="line">                     <span class="comment">// 64 2，然后往左滑动的情况！</span></span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (merge) &#123; <span class="comment">// 在添加数字时判断游戏是否结束</span></span><br><span class="line">      addRandomNum();</span><br><span class="line">      checkComplete(); <span class="comment">// 添加新项后都要检查游戏是否结束：没空位置，而且已经不能再合并</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="5-2-3-界面UI设计"><a href="#5-2-3-界面UI设计" class="headerlink" title="5.2.3 界面UI设计"></a>5.2.3 界面UI设计</h3><p><img src="/2021/02/11/Android/image-20210211175803349.png" alt="image-20210211175803349"></p>
+<h2 id="6-1-天气预报模块设计与调试中遇到的问题及解决方案"><a href="#6-1-天气预报模块设计与调试中遇到的问题及解决方案" class="headerlink" title="6.1 天气预报模块设计与调试中遇到的问题及解决方案"></a>6.1 天气预报模块设计与调试中遇到的问题及解决方案</h2><p><strong>问题1</strong>：地图不能显示，每当调用时，APP就会崩溃。</p>
+<p>解决方案：因为地图是我最后添加的功能，在Android的Logcat中显示太多，信息太多，我就新建一个工程，单独实验地图显示，后来错误指向的布局文件。我是用的高德地图的API，也都是按照开发手册上的说明来操作的，意思也没发现错误。经过查阅别人是如何使用高德地图的，发现了问题：高德地图的jar包有不同的类型，常规使用布局关键字是*.api.maps.MapView，但我下载的是2D地图，必须使用*.api.maps2d.MapView才能正常加载地图容器。</p>
+<p><strong>问题2</strong>：在每次获取到新的数据，或者要刷新已经出现的UI时，不能显示最新的数据。</p>
+<p>解决方案：每次更新数据，与网络延时有很大关系，时间过长APP会依然显示上一次的天气数据，而且获取实时数据后也不可以实时刷新，必须通过重新启动这个activity才能实现UI刷新，通过网上查阅资料可以使用下拉刷新的控件，来刷新UI界面。</p>
+<p><strong>问题3</strong>：每次访问网络时，都会获取很多数据，如何处理这些数据，使得每次都能访问最新天气信息。</p>
+<p>解决方案：如果每次都要将获得的数据存入数据库，会使得软件的缓存越来越大，所以如果成功从天气网站上获取到天气信息，在写入数据库前，先清空数据库，这样就可以保证每次UI刷新时，取得的数据都是最新的。</p>
+<h2 id="6-2-2048游戏模块设计过程中遇到的问题及感受"><a href="#6-2-2048游戏模块设计过程中遇到的问题及感受" class="headerlink" title="6.2 2048游戏模块设计过程中遇到的问题及感受"></a>6.2 2048游戏模块设计过程中遇到的问题及感受</h2><p><strong>问题1</strong>：无法显示gameView、Card，但是移动时得分在增加。</p>
+<p>出错原因：我的onSizeChange这个方法用于动态调整卡片的大小，是在构造函数执行之后才会执行的，而这个时候布局已经完成了，所以没有办法将卡片加入到布局当中去。</p>
+<p>解决办法如下：</p>
+<p>(1)不能在initGame()中调用startGame()，应该在onSizeChanged()时调用，当应用程序界面发送改变时，会自动调用该函数，也就是在构造函数之后去调用该函数。</p>
+<p>(2)在onSizeChanged()中原本的addCards()的函数要去掉，因为已经在构造函数中分配了Cards</p>
+<p><strong>问题2</strong>：关于游戏逻辑方面的设计。</p>
+<p>感想：很多看上去很容易实现的东西实际上并不好做，在逻辑处理时经常会出现意想不到的bug，这个时候可以通过debug的方式找出问题发生原因，此外观察logcat的输出也是比较快捷的方式。</p>
+<p><code>完整代码可加QQ：1277565476</code></p>
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2021/02/11/Android/" title="Android">http://coderzqy.github.io/2021/02/11/Android/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android-2048/" rel="tag"># Android 2048</a>
+              <a href="/tags/Android-%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5/" rel="tag"># Android 天气预报</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/11/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" rel="prev" title="八数码">
+      <i class="fa fa-chevron-left"></i> 八数码
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/14/pygame-study/" rel="next" title="pygame_study">
+      pygame_study <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">1. 设计理念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9D%97"><span class="nav-number">2.</span> <span class="nav-text">2. 设计模块</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">3.</span> <span class="nav-text">3. 问题描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5%E6%A8%A1%E5%9D%97"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 天气预报模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-2048%E6%B8%B8%E6%88%8F%E6%A8%A1%E5%9D%97"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 2048游戏模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E8%AE%BE%E8%AE%A1%E7%AE%80%E8%A6%81%E6%8F%8F%E8%BF%B0"><span class="nav-number">4.</span> <span class="nav-text">4. 设计简要描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 天气预报模块设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-2048%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 2048模块设计</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E9%A1%B9%E7%9B%AE%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">5. 项目关键步骤设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5%E6%A8%A1%E5%9D%97"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 天气预报模块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-1-%E8%8E%B7%E5%8F%96%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5%E6%95%B0%E6%8D%AE"><span class="nav-number">5.1.1.</span> <span class="nav-text">5.1.1 获取天气预报数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-2-%E5%90%AF%E5%8A%A8%E4%B8%80%E4%B8%AA%E6%96%B0%E7%9A%84%E7%BA%BF%E7%A8%8B%EF%BC%8C%E9%80%9A%E8%BF%87JSONobject%E5%AF%B9%E8%B1%A1%E6%9D%A5%E8%A7%A3%E6%9E%90%E3%80%82"><span class="nav-number">5.1.2.</span> <span class="nav-text">5.1.2 启动一个新的线程，通过JSONobject对象来解析。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-3-SQLite%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-number">5.1.3.</span> <span class="nav-text">5.1.3 SQLite的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-4-%E9%80%9A%E8%BF%87%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E5%8A%A0%E8%BD%BD%E7%BD%91%E7%BB%9C%E5%9B%BE%E7%89%87"><span class="nav-number">5.1.4.</span> <span class="nav-text">5.1.4 通过创建线程加载网络图片</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-5-%E5%90%8E%E5%8F%B0%E6%9C%8D%E5%8A%A1%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-number">5.1.5.</span> <span class="nav-text">5.1.5 后台服务的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-6-%E5%88%97%E8%A1%A8%E4%B8%8E%E8%AF%A6%E7%BB%86%E7%95%8C%E9%9D%A2%E7%9A%84%E6%8B%BC%E6%8E%A5"><span class="nav-number">5.1.6.</span> <span class="nav-text">5.1.6 列表与详细界面的拼接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-7-%E6%95%88%E6%9E%9C%E5%9B%BE%E5%B1%95%E7%A4%BA"><span class="nav-number">5.1.7.</span> <span class="nav-text">5.1.7 效果图展示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-8-%E9%AB%98%E5%BE%B7%E5%9C%B0%E5%9B%BE%E5%AE%9A%E4%BD%8D"><span class="nav-number">5.1.8.</span> <span class="nav-text">5.1.8 高德地图定位</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-2048%E6%B8%B8%E6%88%8F%E6%A8%A1%E5%9D%97"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 2048游戏模块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-1-%E8%A7%A6%E6%8E%A7%E4%BA%A4%E4%BA%92%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1 触控交互设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-2-%E4%B8%BB%E8%A6%81%E9%80%BB%E8%BE%91%E8%AE%BE%E8%AE%A1%EF%BC%88%E4%BB%A5%E5%B7%A6%E6%BB%91%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2 主要逻辑设计（以左滑为例）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-3-%E7%95%8C%E9%9D%A2UI%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.2.3.</span> <span class="nav-text">5.2.3 界面UI设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1%E4%B8%8E%E8%B0%83%E8%AF%95%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">5.3.</span> <span class="nav-text">6.1 天气预报模块设计与调试中遇到的问题及解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-2048%E6%B8%B8%E6%88%8F%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%8F%8A%E6%84%9F%E5%8F%97"><span class="nav-number">5.4.</span> <span class="nav-text">6.2 2048游戏模块设计过程中遇到的问题及感受</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="君莫良"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">君莫良</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=36496695&auto=0&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">君莫良</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

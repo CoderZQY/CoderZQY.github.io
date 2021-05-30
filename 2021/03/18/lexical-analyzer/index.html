@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="编译原理实验1——词法分析器1、实验要求​    一、实验目的：加深对词法分析器的工作过程的理解；加强对词法分析方法的掌握；能够采用一种编程语言实现简单的词法分析程序；能够使用自己编写的分析程序对简单的程序段进行词法分析。 ​    二、实验内容：自定义一种程序设计语言，或者选择已有的一种高级语言，编制它的词法分析程序。词法分析程序的实现可以采用任何一种编程语言和编程工具。 从输入的源程序中，识别">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lexical_analyzer">
+<meta property="og:url" content="http://coderzqy.github.io/2021/03/18/lexical-analyzer/index.html">
+<meta property="og:site_name" content="君莫良の博客">
+<meta property="og:description" content="编译原理实验1——词法分析器1、实验要求​    一、实验目的：加深对词法分析器的工作过程的理解；加强对词法分析方法的掌握；能够采用一种编程语言实现简单的词法分析程序；能够使用自己编写的分析程序对简单的程序段进行词法分析。 ​    二、实验内容：自定义一种程序设计语言，或者选择已有的一种高级语言，编制它的词法分析程序。词法分析程序的实现可以采用任何一种编程语言和编程工具。 从输入的源程序中，识别">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2021/03/18/lexical-analyzer/20200714200339184.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/03/18/lexical-analyzer/image-20210318204533140.png">
+<meta property="article:published_time" content="2021-03-18T01:44:59.000Z">
+<meta property="article:modified_time" content="2021-03-30T07:32:01.693Z">
+<meta property="article:author" content="君莫良">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="词法分析器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2021/03/18/lexical-analyzer/20200714200339184.png">
+
+<link rel="canonical" href="http://coderzqy.github.io/2021/03/18/lexical-analyzer/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>lexical_analyzer | 君莫良の博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">君莫良の博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一只努力学习编程的猪头少年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">32</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">15</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/03/18/lexical-analyzer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          lexical_analyzer
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-18 09:44:59" itemprop="dateCreated datePublished" datetime="2021-03-18T09:44:59+08:00">2021-03-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-30 15:32:01" itemprop="dateModified" datetime="2021-03-30T15:32:01+08:00">2021-03-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="编译原理实验1——词法分析器"><a href="#编译原理实验1——词法分析器" class="headerlink" title="编译原理实验1——词法分析器"></a>编译原理实验1——词法分析器</h1><h2 id="1、实验要求"><a href="#1、实验要求" class="headerlink" title="1、实验要求"></a>1、实验要求</h2><p>​    一、实验目的：加深对词法分析器的工作过程的理解；加强对词法分析方法的掌握；能够采用一种编程语言实现简单的词法分析程序；能够使用自己编写的分析程序对简单的程序段进行词法分析。</p>
+<p>​    二、实验内容：自定义一种程序设计语言，或者选择已有的一种高级语言，编制它的词法分析程序。词法分析程序的实现可以采用任何一种编程语言和编程工具。 从输入的源程序中，识别出各个具有独立意义的单词，即关键字、标识符、常数、运算 符、界符。并依次输出各个单词的内部编码及单词符号自身值。（遇到错误时可显示“Error”，然后跳过错误部分继续显示）</p>
+<p>​    三、实验要求：1. 对单词的构词规则有明确的定义；2. 编写的分析程序能够正确识别源程序中的单词符号；3. 识别出的单词以&lt;种别码，值&gt;的形式保存在符号表中，正确设计和维护符号表；4. 对于源程序中的词法错误，能够做出简单的错误处理，给出简单的错误提示，保证顺利完成整个源程序的词法分析；</p>
+<p>​    四、实验步骤：1. 定义目标语言的可用符号表和构词规则；2. 依次读入源程序符号，对源程序进行单词切分和识别，直到源程序结束；3. 对正确的单词，按照它的种别以&lt;种别码，值&gt;的形式保存在符号表中；4. 对不正确的单词，做出错误处理。</p>
+<a id="more"></a>
+
+<h2 id="2、实验方法"><a href="#2、实验方法" class="headerlink" title="2、实验方法"></a>2、实验方法</h2><p>​    根据对应的状态转换图完成编码<br><img src="/2021/03/18/lexical-analyzer/20200714200339184.png" alt="状态转换图"></p>
+<h2 id="3、代码实现"><a href="#3、代码实现" class="headerlink" title="3、代码实现"></a>3、代码实现</h2><h3 id="1-前期准备"><a href="#1-前期准备" class="headerlink" title="1. 前期准备"></a>1. 前期准备</h3><p>1）准备一个关键字文件，用于存储要识别的关键字，方便后续添加，命名为keyword.txt</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">private</span> <span class="string">一种访问控制方式：私用模式</span></span><br><span class="line"><span class="attr">protected</span>   <span class="string">一种访问控制方式：保护模式</span></span><br><span class="line"><span class="attr">public</span>  <span class="string">一种访问控制方式：共用模式</span></span><br><span class="line"><span class="attr">abstract</span>   <span class="string">表明类或者成员方法具有抽象属性</span></span><br><span class="line"><span class="attr">class</span>  <span class="string">类</span></span><br><span class="line"><span class="attr">extends</span>    <span class="string">表明一个类型是另一个类型的子类型，这里常见的类型有类和接口</span></span><br><span class="line"><span class="attr">final</span>  <span class="string">用来说明最终属性，表明一个类不能派生出子类，或者成员方法不能被覆盖，或者成员域的值不能被改变</span></span><br><span class="line"><span class="attr">implements</span> <span class="string">表明一个类实现了给定的接口</span></span><br><span class="line"><span class="attr">interface</span>  <span class="string">接口</span></span><br><span class="line"><span class="attr">native</span> <span class="string">用来声明一个方法是由与计算机相关的语言（如C/C++/FORTRAN语言）实现的</span></span><br><span class="line"><span class="attr">new</span>    <span class="string">用来创建新实例对象</span></span><br><span class="line"><span class="attr">static</span> <span class="string">表明具有静态属性</span></span><br><span class="line"><span class="attr">strictfp</span>   <span class="string">用来声明FP_strict（单精度或双精度浮点数）表达式遵循IEEE 754算术规范</span></span><br><span class="line"><span class="attr">synchronized</span>   <span class="string">表明一段代码需要同步执行</span></span><br><span class="line"><span class="attr">transient</span>  <span class="string">声明不用序列化的成员域</span></span><br><span class="line"><span class="attr">volatile</span>   <span class="string">表明两个或者多个变量必须同步地发生变化</span></span><br><span class="line"><span class="attr">break</span>  <span class="string">提前跳出一个块</span></span><br><span class="line"><span class="attr">continue</span>   <span class="string">回到一个块的开始处</span></span><br><span class="line"><span class="attr">return</span> <span class="string">从成员方法中返回数据</span></span><br><span class="line"><span class="attr">do</span> <span class="string">用在do-while循环结构中</span></span><br><span class="line"><span class="attr">while</span>  <span class="string">用在循环结构中 </span></span><br><span class="line"><span class="attr">if</span> <span class="string">条件语句的引导词</span></span><br><span class="line"><span class="attr">else</span>   <span class="string">用在条件语句中，表明当条件不成立时的分支</span></span><br><span class="line"><span class="attr">for</span>    <span class="string">一种循环结构的引导词</span></span><br><span class="line"><span class="attr">instanceof</span> <span class="string">用来测试一个对象是否是指定类型的实例对象</span></span><br><span class="line"><span class="attr">switch</span> <span class="string">分支语句结构的引导词</span></span><br><span class="line"><span class="attr">case</span>   <span class="string">用在switch语句之中，表示其中的一个分支</span></span><br><span class="line"><span class="attr">default</span>    <span class="string">默认，例如，用在switch语句中，表明一个默认的分支</span></span><br><span class="line"><span class="attr">try</span>    <span class="string">尝试一个可能抛出异常的程序块</span></span><br><span class="line"><span class="attr">catch</span>  <span class="string">用在异常处理中，用来捕捉异常</span></span><br><span class="line"><span class="attr">throw</span>  <span class="string">抛出一个异常</span></span><br><span class="line"><span class="attr">throws</span> <span class="string">声明在当前定义的成员方法中所有需要抛出的异常</span></span><br><span class="line"><span class="attr">import</span> <span class="string">表明要访问指定的类或包</span></span><br><span class="line"><span class="attr">package</span>    <span class="string">包</span></span><br><span class="line"><span class="attr">boolean</span>    <span class="string">基本数据类型之一，布尔类型</span></span><br><span class="line"><span class="attr">byte</span>   <span class="string">基本数据类型之一，字节类型</span></span><br><span class="line"><span class="attr">char</span>   <span class="string">基本数据类型之一，字符类型</span></span><br><span class="line"><span class="attr">double</span> <span class="string">基本数据类型之一，双精度浮点数类型</span></span><br><span class="line"><span class="attr">float</span>  <span class="string">基本数据类型之一，单精度浮点数类型</span></span><br><span class="line"><span class="attr">int</span> <span class="string">基本数据类型之一，整数类型</span></span><br><span class="line"><span class="attr">long</span>   <span class="string">基本数据类型之一，长整数类型</span></span><br><span class="line"><span class="attr">short</span>  <span class="string">基本数据类型之一,短整数类型</span></span><br><span class="line"><span class="attr">super</span>  <span class="string">表明当前对象的父类型的引用或者父类型的构造方法</span></span><br><span class="line"><span class="attr">this</span>   <span class="string">指向当前实例对象的引用</span></span><br><span class="line"><span class="attr">void</span>   <span class="string">声明当前成员方法没有返回值</span></span><br><span class="line"><span class="attr">goto</span>   <span class="string">保留关键字，没有具体含义</span></span><br><span class="line"><span class="attr">const</span>   <span class="string">保留关键字，没有具体含义</span></span><br></pre></td></tr></table></figure>
+<p>2）准备一个运算符文件，用于存储要识别的运算符，方便后续添加，命名为operator.txt</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">+</span>   <span class="string">加法 - 相加运算符两侧的值</span></span><br><span class="line"><span class="meta">-</span>  <span class="string">减法 - 左操作数减去右操作数</span></span><br><span class="line"><span class="meta">*</span>  <span class="string">乘法 - 相乘操作符两侧的值</span></span><br><span class="line"><span class="meta">/</span>  <span class="string">除法 - 左操作数除以右操作数</span></span><br><span class="line"><span class="meta">％</span>  <span class="string">取余 - 左操作数除以右操作数的余数</span></span><br><span class="line"><span class="meta">++</span> <span class="string">自增: 操作数的值增加1</span></span><br><span class="line"><span class="meta">--</span> <span class="string">自减: 操作数的值减少1</span></span><br><span class="line">== 检查如果两个操作数的值是否相等，如果相等则条件为真。</span><br><span class="line"><span class="comment">!=  检查如果两个操作数的值是否相等，如果值不相等则条件为真。</span></span><br><span class="line"><span class="meta">&gt;</span>   <span class="string">检查左操作数的值是否大于右操作数的值，如果是那么条件为真。</span></span><br><span class="line"><span class="meta">&lt;</span>   <span class="string">检查左操作数的值是否小于右操作数的值，如果是那么条件为真。</span></span><br><span class="line"><span class="meta">&gt;</span>=  <span class="string">检查左操作数的值是否大于或等于右操作数的值，如果是那么条件为真。</span></span><br><span class="line"><span class="meta">&lt;</span>= <span class="string">检查左操作数的值是否小于或等于右操作数的值，如果是那么条件为真。</span></span><br><span class="line"><span class="meta">&amp;</span>  <span class="string">如果相对应位都是1，则结果为1，否则为0</span></span><br><span class="line"><span class="meta">|</span>  <span class="string">如果相对应位都是 0，则结果为 0，否则为 1</span></span><br><span class="line"><span class="meta">^</span>  <span class="string">如果相对应位值相同，则结果为0，否则为1</span></span><br><span class="line"><span class="meta">~</span>  <span class="string">按位取反运算符翻转操作数的每一位，即0变成1，1变成0。</span></span><br><span class="line"><span class="meta">&lt;&lt;</span>     <span class="string">按位左移运算符。左操作数按位左移右操作数指定的位数。</span></span><br><span class="line"><span class="meta">&gt;&gt;</span>     <span class="string">按位右移运算符。左操作数按位右移右操作数指定的位数。</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="string">按位右移补零操作符。左操作数的值按右操作数指定的位数右移，移动得到的空位以零填充。</span></span><br><span class="line"><span class="meta">&amp;&amp;</span> <span class="string">称为逻辑与运算符。当且仅当两个操作数都为真，条件才为真。</span></span><br><span class="line"><span class="meta">||</span> <span class="string">称为逻辑或操作符。如果任何两个操作数任何一个为真，条件为真。</span></span><br><span class="line"><span class="comment">!   称为逻辑非运算符。用来反转操作数的逻辑状态。如果条件为true，则逻辑非运算符将得到false。</span></span><br><span class="line">=  简单的赋值运算符，将右操作数的值赋给左侧操作数</span><br><span class="line"><span class="meta">+</span>=  <span class="string">加和赋值操作符，它把左操作数和右操作数相加赋值给左操作数</span></span><br><span class="line"><span class="meta">-</span>= <span class="string">减和赋值操作符，它把左操作数和右操作数相减赋值给左操作数</span></span><br><span class="line"><span class="meta">*</span>= <span class="string">乘和赋值操作符，它把左操作数和右操作数相乘赋值给左操作数</span></span><br><span class="line"><span class="meta">/</span>= <span class="string">除和赋值操作符，它把左操作数和右操作数相除赋值给左操作数</span></span><br><span class="line"><span class="meta">(％)</span>=    <span class="string">取模和赋值操作符，它把左操作数和右操作数取模后赋值给左操作数</span></span><br><span class="line"><span class="meta">&lt;&lt;</span>=    <span class="string">左移位赋值运算符</span></span><br><span class="line"><span class="meta">&gt;&gt;</span>=    <span class="string">右移位赋值运算符</span></span><br><span class="line"><span class="meta">&amp;</span>= <span class="string">按位与赋值运算符</span></span><br><span class="line"><span class="meta">^</span>=  <span class="string">按位异或赋值操作符</span></span><br><span class="line"><span class="meta">|</span>=  <span class="string">按位或赋值操作符</span></span><br></pre></td></tr></table></figure>
+<p>3）准备一个分割符文件，用于存储要识别的分割符，方便后续添加，命名为separation.txt</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&#123;</span>   <span class="string">大括号(花括号)：用来定义块、类、方法及局部范围，也用来包括自己初始化的数组的值。大括号必须成对出现</span></span><br><span class="line"><span class="attr">&#125;</span></span><br><span class="line"><span class="meta">[</span>   <span class="string">中括号(方括号)：用来进行数组的声明，也用来撤销对数组值的引用</span></span><br><span class="line"><span class="attr">]</span></span><br><span class="line"><span class="meta">(</span>   <span class="string">小括号(圆括号)：在定义和调用方法时，用来容纳参数表。在控制语句或强制类型转换的表达式中用来表示执行或计算的优先权</span></span><br><span class="line"><span class="attr">)</span></span><br><span class="line"><span class="meta">;</span>   <span class="string">分号：用来表示一条语句的结束。语句必须以分号结束，否则即使一条语句跨行或者多行，仍是未结束的</span></span><br><span class="line"><span class="meta">,</span>   <span class="string">逗号：在变量生命中用于分隔变量表中的各个变量，在for控制语句中，用来将圆括号里的语句链接起来</span></span><br><span class="line">:   冒号：说明语句标号</span><br><span class="line"><span class="meta">.</span>   <span class="string">圆点：用于类/对象和它的属性或者方法之间的分隔。</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-编写FileUtil工具类"><a href="#2-编写FileUtil工具类" class="headerlink" title="2. 编写FileUtil工具类"></a>2. 编写FileUtil工具类</h3><p>定义一个工具类FileUtil，实现readFile()方法：读取文本文件，创建一个ArrayList&lt; String &gt;队列存取符号，读取完毕则返回该队列。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.BufferedReader;</span><br><span class="line"><span class="keyword">import</span> java.io.FileReader;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileUtil</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ArrayList&lt;String&gt; <span class="title">readFile</span><span class="params">(String filePath)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//以字符方式读取文本文件</span></span><br><span class="line">        FileReader fis = <span class="keyword">null</span>;</span><br><span class="line">        BufferedReader br = <span class="keyword">null</span>;</span><br><span class="line">        ArrayList&lt;String&gt; arrayList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            fis = <span class="keyword">new</span> FileReader(filePath);</span><br><span class="line">            br = <span class="keyword">new</span> BufferedReader(fis);</span><br><span class="line">            String line;</span><br><span class="line">            <span class="keyword">while</span> ((line = br.readLine()) != <span class="keyword">null</span>)&#123;</span><br><span class="line">                line = line.split(<span class="string">&quot;\\s+&quot;</span>)[<span class="number">0</span>];	<span class="comment">//按空白字符进行分割</span></span><br><span class="line">                arrayList.add(line);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span>(br != <span class="keyword">null</span>)&#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    br.close();</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> arrayList;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-编写LexicalAnalyzer主类"><a href="#3-编写LexicalAnalyzer主类" class="headerlink" title="3. 编写LexicalAnalyzer主类"></a>3. 编写LexicalAnalyzer主类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> 编译原理.作业<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileNotFoundException;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.Scanner;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LexicalAnalyzer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String keywordFilePath = <span class="string">&quot;src/编译原理/作业1/keyword.txt&quot;</span>;    <span class="comment">//关键字</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String operatorFilePath = <span class="string">&quot;src/编译原理/作业1/operator.txt&quot;</span>;  <span class="comment">//运算符</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String separationFilePath = <span class="string">&quot;src/编译原理/作业1/separation.txt&quot;</span>;  <span class="comment">//分隔符</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String targetFilePath = <span class="string">&quot;src/编译原理/作业1/test_data.txt&quot;</span>;  <span class="comment">//测试文件</span></span><br><span class="line">    <span class="keyword">static</span> ArrayList&lt;String&gt; keyWords=<span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">static</span> ArrayList&lt;String&gt; operations=<span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">static</span> ArrayList&lt;String&gt; symbols=<span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">//指向当前所读到字符串的位置的指针</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> p,lines;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String []args)</span> <span class="keyword">throws</span> FileNotFoundException </span>&#123;</span><br><span class="line">        <span class="comment">//初始化，读入关键字、运算符、分隔符配置文件</span></span><br><span class="line">        keyWords = FileUtil.readFile(keywordFilePath);</span><br><span class="line">        operations = FileUtil.readFile(operatorFilePath);</span><br><span class="line">        symbols = FileUtil.readFile(separationFilePath);</span><br><span class="line">        <span class="comment">//读入目标文件</span></span><br><span class="line">        File file = <span class="keyword">new</span> File(targetFilePath);</span><br><span class="line">        lines = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">try</span>(Scanner input = <span class="keyword">new</span> Scanner(file)) &#123;</span><br><span class="line">            <span class="keyword">while</span> (input.hasNextLine())&#123;</span><br><span class="line">                analyze(input.nextLine());</span><br><span class="line">                lines++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">analyze</span><span class="params">(String str)</span></span>&#123;</span><br><span class="line">        p = <span class="number">0</span>;</span><br><span class="line">        str = str.trim();</span><br><span class="line">        <span class="keyword">for</span> (; p &lt; str.length(); p++)&#123;</span><br><span class="line">            <span class="keyword">char</span> ch = str.charAt(p);</span><br><span class="line">            <span class="keyword">if</span> (Character.isDigit(ch))&#123;</span><br><span class="line">                <span class="comment">//实数的识别</span></span><br><span class="line">                digitCheck(str);</span><br><span class="line">            &#125;<span class="keyword">else</span> <span class="keyword">if</span> (Character.isLetter(ch)||ch == <span class="string">&#x27;_&#x27;</span>)&#123;</span><br><span class="line">                <span class="comment">//标识符，关键字的识别</span></span><br><span class="line">                letterCheck(str);</span><br><span class="line">            &#125;<span class="keyword">else</span> <span class="keyword">if</span> (ch ==<span class="string">&#x27;&quot;&#x27;</span>)&#123;</span><br><span class="line">                <span class="comment">//字符串检查</span></span><br><span class="line">                stringCheck(str);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (ch ==<span class="string">&#x27; &#x27;</span>)&#123;</span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">//符号的识别</span></span><br><span class="line">                symbolCheck(str);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*数字的识别</span></span><br><span class="line"><span class="comment">     * 1、识别退出：</span></span><br><span class="line"><span class="comment">     *   1.1、遇到空格符</span></span><br><span class="line"><span class="comment">     *   1.2、遇到运算符或者分割符</span></span><br><span class="line"><span class="comment">     * 2、错误情况：</span></span><br><span class="line"><span class="comment">     *   2.1、两个及以上小数点</span></span><br><span class="line"><span class="comment">     *   2.2、掺杂字母</span></span><br><span class="line"><span class="comment">     * */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">digitCheck</span><span class="params">(String str)</span></span>&#123;</span><br><span class="line">        StringBuffer sb = <span class="keyword">new</span> StringBuffer(String.valueOf(str.charAt(p++)));</span><br><span class="line">        <span class="comment">//判断数字的小数点是否有且是否大于1</span></span><br><span class="line">        <span class="keyword">int</span> flag = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">boolean</span> err = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">char</span> ch;</span><br><span class="line">        <span class="keyword">for</span> (; p&lt;str.length(); p++) &#123;</span><br><span class="line">            ch = str.charAt(p);</span><br><span class="line">            <span class="keyword">if</span> (ch == <span class="string">&#x27; &#x27;</span>|| (!Character.isLetterOrDigit(ch) &amp;&amp; ch!=<span class="string">&#x27;.&#x27;</span>)) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;<span class="keyword">else</span> <span class="keyword">if</span> (err)&#123;</span><br><span class="line">                sb.append(ch);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                sb.append(ch);</span><br><span class="line">                <span class="keyword">if</span> (ch == <span class="string">&#x27;.&#x27;</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (flag == <span class="number">1</span>) &#123;</span><br><span class="line">                        err = <span class="keyword">true</span>; <span class="comment">//多出一个小数点，Error！</span></span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        flag++;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span> (Character.isLetter(ch))&#123;</span><br><span class="line">                    err = <span class="keyword">true</span>; <span class="comment">//出现字母，Error！</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        String token = sb.toString();</span><br><span class="line">        <span class="keyword">if</span> (token.charAt(token.length()-<span class="number">1</span>) == <span class="string">&#x27;.&#x27;</span>)&#123; <span class="comment">//最后一位为小数点，Error！</span></span><br><span class="line">            err = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (err)&#123;</span><br><span class="line">            System.out.println(lines + <span class="string">&quot;line&quot;</span> + <span class="string">&quot;: &quot;</span> + token + <span class="string">&quot; is wrong&quot;</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;(&quot;</span> + <span class="string">&quot;常数&quot;</span> + <span class="string">&quot;,&quot;</span> + token + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (p!=str.length()-<span class="number">1</span>||(p==str.length()-<span class="number">1</span>&amp;&amp;!Character.isDigit(str.charAt(p))))&#123;</span><br><span class="line">            p--;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//标识符，关键字的识别</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">letterCheck</span><span class="params">(String str)</span></span>&#123;</span><br><span class="line">        StringBuffer sb = <span class="keyword">new</span> StringBuffer(String.valueOf(str.charAt(p++)));</span><br><span class="line">        <span class="keyword">char</span> ch;</span><br><span class="line">        <span class="keyword">for</span> (; p &lt; str.length(); p++)&#123;</span><br><span class="line">            ch = str.charAt(p);</span><br><span class="line">            <span class="keyword">if</span> (!Character.isLetterOrDigit(ch) &amp;&amp; ch!=<span class="string">&#x27;_&#x27;</span>)&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                sb.append(ch);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        String token = sb.toString();</span><br><span class="line">        <span class="keyword">if</span> (keyWords.contains(token))&#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;(&quot;</span> + <span class="string">&quot;关键字&quot;</span> + <span class="string">&quot;,&quot;</span> + token + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;(&quot;</span> + <span class="string">&quot;标识符&quot;</span> + <span class="string">&quot;,&quot;</span> + token + <span class="string">&quot;)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (p!=str.length()-<span class="number">1</span>||(p==str.length()-<span class="number">1</span>&amp;&amp;(!Character.isLetterOrDigit(str.charAt(p))&amp;&amp;str.charAt(p)!=<span class="string">&#x27;_&#x27;</span>)))&#123;</span><br><span class="line">            p--;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//符号的识别</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">symbolCheck</span><span class="params">(String str)</span></span>&#123;</span><br><span class="line">        String token = String.valueOf(str.charAt(p++));</span><br><span class="line">        <span class="keyword">char</span> ch;</span><br><span class="line">        <span class="keyword">if</span> (symbols.contains(token))&#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;(&quot;</span>+<span class="string">&quot;分隔符&quot;</span>+<span class="string">&quot;,&quot;</span>+token+<span class="string">&quot;)&quot;</span>);</span><br><span class="line">            p--;</span><br><span class="line">        &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (operations.contains(token))&#123;</span><br><span class="line">                <span class="keyword">if</span> (p &lt; str.length())&#123;</span><br><span class="line">                    ch = str.charAt(p);</span><br><span class="line">                    <span class="keyword">if</span> (operations.contains(token+ch))&#123;</span><br><span class="line">                        token += ch;</span><br><span class="line">                        p++;</span><br><span class="line">                        <span class="keyword">if</span> (p &lt; str.length())&#123;</span><br><span class="line">                            ch = str.charAt(p);</span><br><span class="line">                            <span class="keyword">if</span> (operations.contains(token + ch))&#123;</span><br><span class="line">                                token += ch;</span><br><span class="line">                                System.out.println(<span class="string">&quot;(&quot;</span>+<span class="string">&quot;运算符&quot;</span>+<span class="string">&quot;,&quot;</span>+token+<span class="string">&quot;)&quot;</span>);    <span class="comment">//三个字符的运算符</span></span><br><span class="line">                            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                                p--;</span><br><span class="line">                                System.out.println(<span class="string">&quot;(&quot;</span>+<span class="string">&quot;运算符&quot;</span>+<span class="string">&quot;,&quot;</span>+token+<span class="string">&quot;)&quot;</span>);   <span class="comment">//两个字符的运算符</span></span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                            System.out.println(<span class="string">&quot;(&quot;</span>+<span class="string">&quot;运算符&quot;</span>+<span class="string">&quot;,&quot;</span>+token+<span class="string">&quot;)&quot;</span>);    <span class="comment">//两个字符的运算符</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                        p--;</span><br><span class="line">                        System.out.println(<span class="string">&quot;(&quot;</span>+<span class="string">&quot;运算符&quot;</span>+<span class="string">&quot;,&quot;</span>+token+<span class="string">&quot;)&quot;</span>);        <span class="comment">//一个字符的运算符</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                p--;</span><br><span class="line">                System.out.println(lines+<span class="string">&quot;line&quot;</span>+<span class="string">&quot;: &quot;</span>+token+<span class="string">&quot; is wrong&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//字符串检查</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">stringCheck</span><span class="params">(String str)</span></span>&#123;</span><br><span class="line">        StringBuffer sb = <span class="keyword">new</span> StringBuffer(String.valueOf(str.charAt(p++)));</span><br><span class="line">        <span class="keyword">char</span> ch;</span><br><span class="line">        <span class="keyword">for</span> (;p&lt;str.length();p++)&#123;</span><br><span class="line">            ch=str.charAt(p);</span><br><span class="line">            sb.append(ch);</span><br><span class="line">            <span class="keyword">if</span> (ch == <span class="string">&#x27;&quot;&#x27;</span>)&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        String token = sb.toString();</span><br><span class="line">        <span class="keyword">if</span> (token.charAt(token.length()-<span class="number">1</span>)!=<span class="string">&#x27;&quot;&#x27;</span>)&#123;</span><br><span class="line">            System.out.println(lines+<span class="string">&quot;line&quot;</span>+<span class="string">&quot;: &quot;</span>+token+<span class="string">&quot; is wrong&quot;</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;(&quot;</span>+<span class="string">&quot;字符串&quot;</span>+<span class="string">&quot;,&quot;</span>+token+<span class="string">&quot;)&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="4、运行测试"><a href="#4、运行测试" class="headerlink" title="4、运行测试"></a>4、运行测试</h2><p>注：测试文件为该程序代码本身，以下为部分结果截图</p>
+<p><img src="/2021/03/18/lexical-analyzer/image-20210318204533140.png" alt="image-20210318204533140"></p>
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2021/03/18/lexical-analyzer/" title="lexical_analyzer">http://coderzqy.github.io/2021/03/18/lexical-analyzer/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90%E5%99%A8/" rel="tag"># 词法分析器</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/17/Android-Calculator/" rel="prev" title="Android_Calculator">
+      <i class="fa fa-chevron-left"></i> Android_Calculator
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/19/COVID-19-QA-System/" rel="next" title="COVID-19_QA_System">
+      COVID-19_QA_System <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86%E5%AE%9E%E9%AA%8C1%E2%80%94%E2%80%94%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90%E5%99%A8"><span class="nav-number">1.</span> <span class="nav-text">编译原理实验1——词法分析器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81%E5%AE%9E%E9%AA%8C%E8%A6%81%E6%B1%82"><span class="nav-number">1.1.</span> <span class="nav-text">1、实验要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E3%80%81%E5%AE%9E%E9%AA%8C%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.</span> <span class="nav-text">2、实验方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E3%80%81%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.3.</span> <span class="nav-text">3、代码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%89%8D%E6%9C%9F%E5%87%86%E5%A4%87"><span class="nav-number">1.3.1.</span> <span class="nav-text">1. 前期准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%BC%96%E5%86%99FileUtil%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.3.2.</span> <span class="nav-text">2. 编写FileUtil工具类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E7%BC%96%E5%86%99LexicalAnalyzer%E4%B8%BB%E7%B1%BB"><span class="nav-number">1.3.3.</span> <span class="nav-text">3. 编写LexicalAnalyzer主类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%E3%80%81%E8%BF%90%E8%A1%8C%E6%B5%8B%E8%AF%95"><span class="nav-number">1.4.</span> <span class="nav-text">4、运行测试</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="君莫良"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">君莫良</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=36496695&auto=0&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">君莫良</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

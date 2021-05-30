@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="pygame学习笔记前言：通过一个简单的壁球小游戏来学习pygame模块，并在学习过程中不断完善和改进，笔记内容分为四大章节：pygame最小开发框架、屏幕绘制机制、事件处理机制、色彩与绘图机制 学习视频参考：b站的嵩天教授的Python游戏开发教程（pygame）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pygame_study">
+<meta property="og:url" content="http://coderzqy.github.io/2021/02/14/pygame-study/index.html">
+<meta property="og:site_name" content="君莫良の博客">
+<meta property="og:description" content="pygame学习笔记前言：通过一个简单的壁球小游戏来学习pygame模块，并在学习过程中不断完善和改进，笔记内容分为四大章节：pygame最小开发框架、屏幕绘制机制、事件处理机制、色彩与绘图机制 学习视频参考：b站的嵩天教授的Python游戏开发教程（pygame）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/14/pygame-study/image-20210214202340393.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/14/pygame-study/image-20210214232236323.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/14/pygame-study/image-20210215142257889.png">
+<meta property="og:image" content="http://coderzqy.github.io/2021/02/14/pygame-study/image-20210215143227205.png">
+<meta property="article:published_time" content="2021-02-14T12:12:06.000Z">
+<meta property="article:modified_time" content="2021-02-15T07:09:38.352Z">
+<meta property="article:author" content="君莫良">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="pygame">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2021/02/14/pygame-study/image-20210214202340393.png">
+
+<link rel="canonical" href="http://coderzqy.github.io/2021/02/14/pygame-study/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>pygame_study | 君莫良の博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">君莫良の博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一只努力学习编程的猪头少年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">32</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">15</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/02/14/pygame-study/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pygame_study
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-14 20:12:06" itemprop="dateCreated datePublished" datetime="2021-02-14T20:12:06+08:00">2021-02-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-15 15:09:38" itemprop="dateModified" datetime="2021-02-15T15:09:38+08:00">2021-02-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="pygame学习笔记"><a href="#pygame学习笔记" class="headerlink" title="pygame学习笔记"></a>pygame学习笔记</h1><p>前言：通过一个简单的壁球小游戏来学习pygame模块，并在学习过程中不断完善和改进，笔记内容分为四大章节：pygame最小开发框架、屏幕绘制机制、事件处理机制、色彩与绘图机制</p>
+<p>学习视频参考：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1XW411E7vb?p=25">b站的嵩天教授的Python游戏开发教程（pygame）</a></p>
+<a id="more"></a>
+
+<h2 id="1、pygame最小游戏开发框架"><a href="#1、pygame最小游戏开发框架" class="headerlink" title="1、pygame最小游戏开发框架"></a>1、pygame最小游戏开发框架</h2><h3 id="1）引入pygame和sys"><a href="#1）引入pygame和sys" class="headerlink" title="1）引入pygame和sys"></a>1）引入pygame和sys</h3><ul>
+<li>sys是python的标准库，提供了python运行时环境变量的操作，如sys.exit()用于结束游戏并退出（使用率最高）</li>
+</ul>
+<h3 id="2）初始化init-及设置"><a href="#2）初始化init-及设置" class="headerlink" title="2）初始化init()及设置"></a>2）初始化init()及设置</h3><ul>
+<li>pygame.init()对pygame内部各功能模块进行初始化创建及变量设置，默认调用</li>
+<li> pygame.display.set_mode(size) 初始化显示窗口，第一个参数size是一个二元元组，分别表示窗口的宽度和高度</li>
+<li>pygame.display.set_caption(title) 设置显示窗口的标题内容，参数title是一个字符串类型 </li>
+</ul>
+<h3 id="3）获取事件并逐类响应"><a href="#3）获取事件并逐类响应" class="headerlink" title="3）获取事件并逐类响应"></a>3）获取事件并逐类响应</h3><ul>
+<li>pygame会维护一个事件队列</li>
+<li> pygame.event.get()会从pygame的队列事件中取出并删除，例如键盘按下就是一个事件</li>
+<li> event.type：获取事件类型并逐类响应；pygame.QUIT是pygame中定义的退出事件常量</li>
+</ul>
+<h3 id="4）刷新屏幕"><a href="#4）刷新屏幕" class="headerlink" title="4）刷新屏幕"></a>4）刷新屏幕</h3><p>​        pygame.display.update()对显示窗口进行更新，默认窗口全部重绘</p>
+<h3 id="5）最小框架代码"><a href="#5）最小框架代码" class="headerlink" title="5）最小框架代码"></a>5）最小框架代码</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pygame</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">pygame.init()</span><br><span class="line">bg_size = width, height = <span class="number">600</span>, <span class="number">400</span></span><br><span class="line">screen = pygame.display.set_mode(bg_size)</span><br><span class="line">pygame.display.set_caption(<span class="string">&quot;pygame游戏之旅&quot;</span>)  <span class="comment"># 设置窗口的标题</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">        <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:</span><br><span class="line">            sys.exit()</span><br><span class="line">    pygame.display.update()</span><br></pre></td></tr></table></figure>
+<h3 id="6）运行结果"><a href="#6）运行结果" class="headerlink" title="6）运行结果"></a>6）运行结果</h3><p><img src="/2021/02/14/pygame-study/image-20210214202340393.png" alt="image-20210214202340393"></p>
+<h2 id="2、碰壁球小游戏案例"><a href="#2、碰壁球小游戏案例" class="headerlink" title="2、碰壁球小游戏案例"></a>2、碰壁球小游戏案例</h2><p><code>注：壁球使用植物大战僵尸中的窝瓜素材，推荐一个免费的素材网站http://aigei.com/game/?m=b_3125497</code></p>
+<h3 id="1）从需求到实现的三个关键要素"><a href="#1）从需求到实现的三个关键要素" class="headerlink" title="1）从需求到实现的三个关键要素"></a>1）从需求到实现的三个关键要素</h3><ul>
+<li>壁球：游戏需要一个壁球，通过图片引入</li>
+<li>壁球运动：壁球要能够上下左右运动</li>
+<li>壁球反弹：壁球要能够在上下左右边缘反弹</li>
+</ul>
+<h3 id="2）壁球的载入"><a href="#2）壁球的载入" class="headerlink" title="2）壁球的载入"></a>2）壁球的载入</h3><ul>
+<li><p>pygame使用内部定义的surface对象表示所有载入的图像，其中pygame.get_rect()方法返回一个覆盖图像的矩形Rect对象</p>
+</li>
+<li><p>那么得到一个图像的外切矩形有什么好处呢？<br>Rect对象有一些很重要的属性，例如：top、bottom、left、right、width、height</p>
+</li>
+</ul>
+<h3 id="3）壁球的移动"><a href="#3）壁球的移动" class="headerlink" title="3）壁球的移动"></a>3）壁球的移动</h3><ul>
+<li>ballrect.move(x,y) ，Rect对象移动一个偏移量(x,y)，即在横轴方向上移动x像素、纵轴方向上移动y像素，x、y为整数</li>
+</ul>
+<h3 id="4）壁球的反弹运动（逻辑控制）"><a href="#4）壁球的反弹运动（逻辑控制）" class="headerlink" title="4）壁球的反弹运动（逻辑控制）"></a>4）壁球的反弹运动（逻辑控制）</h3><ul>
+<li><p>遇到左右两侧，横向速度取反</p>
+</li>
+<li><p>遇到上下两侧，纵向速度取反</p>
+</li>
+</ul>
+<h3 id="5）填充背景"><a href="#5）填充背景" class="headerlink" title="5）填充背景"></a>5）填充背景</h3><ul>
+<li><p>壁球移动后，原有位置将默认填充白色，因此需要重新对背景进行填充</p>
+</li>
+<li><p>screen.fill(color)显示窗口背景填充为color颜色，采用RGB色彩体系</p>
+</li>
+</ul>
+<h3 id="6）通过Rect对象引导对壁球的绘制"><a href="#6）通过Rect对象引导对壁球的绘制" class="headerlink" title="6）通过Rect对象引导对壁球的绘制"></a>6）通过Rect对象引导对壁球的绘制</h3><ul>
+<li>screen.blit(src,dest)将一个图像绘制在另一个图像上，即将src绘制到dest位置上。</li>
+</ul>
+<h3 id="7）节奏控制"><a href="#7）节奏控制" class="headerlink" title="7）节奏控制"></a>7）节奏控制</h3><ul>
+<li><p>如何有效的控制壁球的运动速度？</p>
+<p>clock = pygame.time.Clock()创建一个Clock对象，用于操作时间</p>
+<p>clock.tick(framerate) 控制帧速度，即窗口刷新速度</p>
+<p>例如clock.tick(100)表示每秒钟100次帧刷新，视频中每次展示的静态图像成为帧</p>
+</li>
+</ul>
+<h3 id="8）完整代码"><a href="#8）完整代码" class="headerlink" title="8）完整代码"></a>8）完整代码</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pygame</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">pygame.init()</span><br><span class="line">bg_size = width, height = <span class="number">600</span>, <span class="number">400</span></span><br><span class="line">screen = pygame.display.set_mode(bg_size)</span><br><span class="line">pygame.display.set_caption(<span class="string">&#x27;crash ball game&#x27;</span>)</span><br><span class="line">ball = pygame.image.load(<span class="string">&#x27;../squash.png&#x27;</span>)</span><br><span class="line">ballrect = ball.get_rect()</span><br><span class="line">speed = [<span class="number">1</span>, <span class="number">1</span>]</span><br><span class="line">BLACK = <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span></span><br><span class="line">fps = <span class="number">300</span> <span class="comment"># Frames per Second 每秒帧率参数</span></span><br><span class="line">fclock = pygame.time.Clock()</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">        <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:</span><br><span class="line">            sys.exit()</span><br><span class="line">    ballrect = ballrect.move(speed[<span class="number">0</span>], speed[<span class="number">1</span>])</span><br><span class="line">    <span class="keyword">if</span> ballrect.left &lt; <span class="number">0</span> <span class="keyword">or</span> ballrect.right &gt; width:</span><br><span class="line">        speed[<span class="number">0</span>] = -speed[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">if</span> ballrect.top &lt; <span class="number">0</span> <span class="keyword">or</span> ballrect.bottom &gt; height:</span><br><span class="line">        speed[<span class="number">1</span>] = -speed[<span class="number">1</span>]</span><br><span class="line">    screen.fill(BLACK)</span><br><span class="line">    screen.blit(ball, ballrect)</span><br><span class="line">    pygame.display.update()</span><br><span class="line">    fclock.tick(fps)</span><br></pre></td></tr></table></figure>
+<h3 id="9）运行效果截图"><a href="#9）运行效果截图" class="headerlink" title="9）运行效果截图"></a>9）运行效果截图</h3><p><img src="/2021/02/14/pygame-study/image-20210214232236323.png" alt="image-20210214232236323"></p>
+<h3 id="10）添加速度控制"><a href="#10）添加速度控制" class="headerlink" title="10）添加速度控制"></a>10）添加速度控制</h3><h4 id="增加键盘按下事件响应"><a href="#增加键盘按下事件响应" class="headerlink" title="增加键盘按下事件响应"></a>增加键盘按下事件响应</h4><ul>
+<li>“↑”：纵向绝对速度增加一个像素（纵向加速）</li>
+<li>“↓”：纵向绝对速度减少一个像素（纵向减速）</li>
+<li>“←”：纵向绝对速度减少一个像素（横向减速）</li>
+<li>“→”：横向绝对速度增加一个像素（横向加速）</li>
+</ul>
+<p>增添如下代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.KEYDOWN:  <span class="comment"># 加入键盘按下事件响应</span></span><br><span class="line">    <span class="keyword">if</span> event.key == pygame.K_LEFT:</span><br><span class="line">        speed[<span class="number">0</span>] = speed[<span class="number">0</span>] <span class="keyword">if</span> speed[<span class="number">0</span>] == <span class="number">0</span> <span class="keyword">else</span> (<span class="built_in">abs</span>(speed[<span class="number">0</span>]) - <span class="number">1</span>) * <span class="built_in">int</span>(speed[<span class="number">0</span>] / <span class="built_in">abs</span>(speed[<span class="number">0</span>]))</span><br><span class="line">    <span class="keyword">elif</span> event.key == pygame.K_RIGHT:</span><br><span class="line">        speed[<span class="number">0</span>] = speed[<span class="number">0</span>] + <span class="number">1</span> <span class="keyword">if</span> speed[<span class="number">0</span>] &gt;= <span class="number">0</span> <span class="keyword">else</span> speed[<span class="number">0</span>] - <span class="number">1</span></span><br><span class="line">    <span class="keyword">elif</span> event.key == pygame.K_UP:</span><br><span class="line">        speed[<span class="number">1</span>] = speed[<span class="number">1</span>] + <span class="number">1</span> <span class="keyword">if</span> speed[<span class="number">1</span>] &gt;= <span class="number">0</span> <span class="keyword">else</span> speed[<span class="number">1</span>] - <span class="number">1</span></span><br><span class="line">    <span class="keyword">elif</span> event.key == pygame.K_DOWN:</span><br><span class="line">        speed[<span class="number">1</span>] = speed[<span class="number">1</span>] <span class="keyword">if</span> speed[<span class="number">1</span>] == <span class="number">0</span> <span class="keyword">else</span> (<span class="built_in">abs</span>(speed[<span class="number">1</span>]) - <span class="number">1</span>) * <span class="built_in">int</span>(speed[<span class="number">1</span>] / <span class="built_in">abs</span>(speed[<span class="number">1</span>]))</span><br></pre></td></tr></table></figure>
+<h2 id="3、屏幕绘制机制"><a href="#3、屏幕绘制机制" class="headerlink" title="3、屏幕绘制机制"></a>3、屏幕绘制机制</h2><h3 id="1）游戏屏幕的控制——pygame-display"><a href="#1）游戏屏幕的控制——pygame-display" class="headerlink" title="1）游戏屏幕的控制——pygame.display()"></a>1）游戏屏幕的控制——pygame.display()</h3><h3 id="2）控制需求"><a href="#2）控制需求" class="headerlink" title="2）控制需求"></a>2）控制需求</h3><ul>
+<li>游戏全屏</li>
+<li>游戏屏幕大小可调节</li>
+<li>游戏屏幕无边框</li>
+<li>更改游戏标题栏内容</li>
+<li>更改游戏图标</li>
+</ul>
+<h3 id="3）屏幕绘制的重要函数"><a href="#3）屏幕绘制的重要函数" class="headerlink" title="3）屏幕绘制的重要函数"></a>3）屏幕绘制的重要函数</h3><h4 id="Ⅰ-屏幕尺寸和模式"><a href="#Ⅰ-屏幕尺寸和模式" class="headerlink" title="Ⅰ. 屏幕尺寸和模式"></a>Ⅰ. 屏幕尺寸和模式</h4><ul>
+<li><strong>pygame.display.set_mode(r=(0,0),flags=0)</strong> 设置相关屏幕模式<ul>
+<li>r是游戏的分辨率，采用（width，height）方式输入</li>
+<li>flags用来控制显示类型，可用 | 组合使用，常用的显示标签如下：<br>pygame.RESIZABLE 窗口大小可调<br>pygame.NOFRAME  窗口没有边界显示<br>pygame,FULLSCREEN   窗口全屏显示</li>
+<li>注：每种显示方式要配合相应的处理机制。比如大小可调时要有尺寸变化的响应：对扩张显示界面的刷新，对扩张/缩小显示界面的游戏响应<ul>
+<li>pygame.VIDEORESIZE是一种窗口大小改变的事件。事件发生后，返回event.size元组，包含新窗口的宽度和高度<br>.size[0] 宽度，也可以用event.w<br>.size[1] 高度，也可以用event.h<br>返回参数只在事件发生时有用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>pygame.display.Info()</strong> 生成屏幕相关信息<ul>
+<li>产生一个显示信息对象videoInfo，表达当前屏幕的参数信息<br>在.set_mode()之前调用，则显示当前系统参数信息，参数很多，其中有两个十分重要，如下：<br>current_w：当前显示模式或窗口的像素宽度<br>current_h：当前显示模式或窗口的像素高度</li>
+</ul>
+</li>
+</ul>
+<h4 id="Ⅱ-窗口标题和图标"><a href="#Ⅱ-窗口标题和图标" class="headerlink" title="Ⅱ. 窗口标题和图标"></a>Ⅱ. 窗口标题和图标</h4><ul>
+<li><strong>pygame.display.set_caption(title,icontitle=None)</strong> 设置标题信息<ul>
+<li>title设置窗口标题内容</li>
+<li>icontitle 设置图标化后的小标题，可选，部分系统没有</li>
+<li>pygame.display.get_caption()返回当前设置窗口的标题及小标题内容，返回结构为(title,icontitle)<ul>
+<li>用途：该函数与游戏交互逻辑相配合，可以根据游戏情节修改标题内容</li>
+</ul>
+</li>
+<li>pygame.display.set_icon() 设置窗口图标效果，图标是一个surface对象</li>
+<li>pygame.display.get_icon() 获得图标</li>
+</ul>
+</li>
+</ul>
+<h4 id="Ⅲ-窗口感知和刷新"><a href="#Ⅲ-窗口感知和刷新" class="headerlink" title="Ⅲ. 窗口感知和刷新"></a>Ⅲ. 窗口感知和刷新</h4><ul>
+<li><p>**pygame.display.get_active()**当窗口在系统中显示（屏幕绘制 / 非图标化）时返回True。否则返回False     </p>
+</li>
+<li><p><strong>pygame.display.flip()</strong> 重绘整个窗口</p>
+</li>
+<li><p>**pygame.display.update()**只重绘改变的部分</p>
+</li>
+</ul>
+<h4 id="Ⅳ-pygame还提供OpenGL和硬件加速"><a href="#Ⅳ-pygame还提供OpenGL和硬件加速" class="headerlink" title="Ⅳ. pygame还提供OpenGL和硬件加速"></a>Ⅳ. pygame还提供OpenGL和硬件加速</h4><h2 id="4、事件处理机制"><a href="#4、事件处理机制" class="headerlink" title="4、事件处理机制"></a>4、事件处理机制</h2><h3 id="1）pygame中的事件类型"><a href="#1）pygame中的事件类型" class="headerlink" title="1）pygame中的事件类型"></a>1）pygame中的事件类型</h3><p>① 系统    ② 键盘    ③ 鼠标    ④ 游戏杆    ⑤ 窗口    ⑥ 用户定义</p>
+<h3 id="2）事件处理的重要函数"><a href="#2）事件处理的重要函数" class="headerlink" title="2）事件处理的重要函数"></a>2）事件处理的重要函数</h3><h4 id="Ⅰ-处理事件"><a href="#Ⅰ-处理事件" class="headerlink" title="Ⅰ. 处理事件"></a>Ⅰ. 处理事件</h4><ul>
+<li><p><strong>pygame.event.get()</strong></p>
+<ul>
+<li><p>从事件队列中获得事件列表，即获得所有队列的事件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">    <span class="keyword">if</span> event.<span class="built_in">type</span> == pyagme.QUIT:</span><br><span class="line">      sys.exit()</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>增加参数，获得某类或某些类事件<br>pygame.event.get(type)<br>pygame.event.get(typelist)    </p>
+</li>
+<li><p><strong>pygame.event.poll()</strong></p>
+<ul>
+<li><p>从事件队列中获取一个事件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">While <span class="literal">True</span>:</span><br><span class="line">   event = pygame.event.poll()</span><br></pre></td></tr></table></figure></li>
+<li><p>获取的事件将从队列中删除</p>
+</li>
+<li><p>如果事件队列为空，则返回event.NOEVENT        </p>
+</li>
+</ul>
+</li>
+<li><p><strong>pygame.event.clear()</strong></p>
+<ul>
+<li>从事件队列中删除事件，默认删除所有事件</li>
+<li>该函数与pygame.event.get()类似，区别仅是不对事件进行处理</li>
+<li>可以增加参数，指定删除某类或某些类事件：<br>pygame.event.clear(type)<br>pygame.event.clear(typelist)</li>
+</ul>
+</li>
+</ul>
+<h4 id="Ⅱ-操作事件队列"><a href="#Ⅱ-操作事件队列" class="headerlink" title="Ⅱ. 操作事件队列"></a>Ⅱ. 操作事件队列</h4><ul>
+<li><strong>pygame.event.set_blocked(type or typelist)</strong> 控制哪些类型事件不允许被保存到事件队列中</li>
+<li><strong>pygame.event.set_allowed(type or typelist)</strong> 控制哪些类型事件允许被保存到事件队列中</li>
+<li>**pygame.event.get_blocked() **测试某个事件类型是否被事件队列所禁止，如果事件队列被禁止返回True，否则返回False</li>
+</ul>
+<h4 id="Ⅲ-生成事件处理函数"><a href="#Ⅲ-生成事件处理函数" class="headerlink" title="Ⅲ. 生成事件处理函数"></a>Ⅲ. 生成事件处理函数</h4><ul>
+<li>**pygame.event.post(event) **产生一个事件并将其放入事件队列中，一般用于放置用户自定义事件（pygame.USEREVENT）<br>也可以用于放置系统定义事件（如鼠标或键盘等），给定参数</li>
+<li><strong>pygame.event.Event(type,dict)</strong> 创建一个给定类型的事件<br>其中，事件的属性和值都采用字典类型赋值，属性名采用字符串形式，如果创建已有事件，属性需要一致</li>
+</ul>
+<h4 id="Ⅲ-鼠标事件及类型"><a href="#Ⅲ-鼠标事件及类型" class="headerlink" title="Ⅲ. 鼠标事件及类型"></a>Ⅲ. 鼠标事件及类型</h4><ul>
+<li><strong>pygame.event.MOUSEMOTION()</strong> 鼠标移动事件，返回三个值：<ul>
+<li>event.pos 鼠标当前的坐标值(x,y)，相对于窗口左上角</li>
+<li>event.rel 鼠标相对移动距离(x,y)，相对于上次事件</li>
+<li>event.buttons 鼠标按钮状态(a,b,c) 对应鼠标三个键，鼠标移动时这三个键处于按下状态，对应的位置为1，反之为0</li>
+</ul>
+</li>
+<li><strong>pygame.event.MOUSEBUTTONUP()</strong>  鼠标释放事件<ul>
+<li>event.pos 鼠标当前坐标值(x,y)，相对于窗口左上角</li>
+<li>event.button 鼠标按下键编号n，取值0/1/2，分别对应三个键</li>
+</ul>
+</li>
+<li><strong>pygame.event.MOUSEBUTTONDOWN()</strong> 鼠标按下事件<ul>
+<li>event.pos 鼠标当前坐标值(x,y)，相对于窗口左上角</li>
+<li>event.button 鼠标按下键编号n，取值为整数，左键为1，右键为3，设备相关</li>
+</ul>
+</li>
+</ul>
+<h3 id="3）代码演示"><a href="#3）代码演示" class="headerlink" title="3）代码演示"></a>3）代码演示</h3><p>描述：模拟鼠标按下、抬起、移动事件，打印对应坐标以及按键编号</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pygame</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">pygame.init()</span><br><span class="line">size = width, height = <span class="number">600</span>, <span class="number">400</span></span><br><span class="line">screen = pygame.display.set_mode(size)</span><br><span class="line">pygame.display.set_caption(<span class="string">&quot;pygame游戏之旅&quot;</span>)</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">        <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:</span><br><span class="line">            sys.exit()</span><br><span class="line">        <span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.KEYDOWN:</span><br><span class="line">            <span class="keyword">if</span> event.unicode == <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">                print(<span class="string">&quot;[KEYDOWN]:&quot;</span>, <span class="string">&quot;#&quot;</span>, event.key, event.mod)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                print(<span class="string">&quot;[KEYDOWN]:&quot;</span>, event.unicode, event.key, event.mod)</span><br><span class="line">        <span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.MOUSEMOTION:</span><br><span class="line">            print(<span class="string">&#x27;[MOUSEMOTION]:&#x27;</span>, event.pos, event.rel, event.buttons)</span><br><span class="line">        <span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.MOUSEBUTTONDOWN:</span><br><span class="line">            print(<span class="string">&#x27;[MOUSEBUTTONDOWN]:&#x27;</span>, event.pos, event.button)</span><br><span class="line">        <span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.MOUSEBUTTONUP:</span><br><span class="line">            print(<span class="string">&#x27;[MOUSEBUTTONUP]:&#x27;</span>, event.pos, event.button)</span><br><span class="line">    pygame.display.update()</span><br></pre></td></tr></table></figure>
+<h3 id="4）用户自定义事件演示"><a href="#4）用户自定义事件演示" class="headerlink" title="4）用户自定义事件演示"></a>4）用户自定义事件演示</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pygame</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">pygame.init()</span><br><span class="line">size = width, height = <span class="number">600</span>, <span class="number">400</span></span><br><span class="line">screen = pygame.display.set_mode(size)</span><br><span class="line">pygame.display.set_caption(<span class="string">&quot;pygame游戏之旅&quot;</span>)</span><br><span class="line">fps = <span class="number">1</span></span><br><span class="line">fclock = pygame.time.Clock()</span><br><span class="line">num = <span class="number">1</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    uevent = pygame.event.Event(pygame.KEYDOWN, &#123;<span class="string">&#x27;unicode&#x27;</span>: <span class="number">123</span>, <span class="string">&#x27;key&#x27;</span>: pygame.K_SPACE, <span class="string">&#x27;mod&#x27;</span>: pygame.KMOD_ALT&#125;)	<span class="comment"># 自定义按键事件</span></span><br><span class="line">    pygame.event.post(uevent)	<span class="comment"># 放入事件队列</span></span><br><span class="line">    num = num + <span class="number">1</span></span><br><span class="line">    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">        <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:</span><br><span class="line">            sys.exit()</span><br><span class="line">        <span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.KEYDOWN:	<span class="comment"># 事件被处理，打印输出</span></span><br><span class="line">            <span class="keyword">if</span> event.unicode == <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">                print(<span class="string">&#x27;[KEYDOWN&#123;&#125;]:&#x27;</span>.<span class="built_in">format</span>(num), <span class="string">&quot;#&quot;</span>, event.key, event.mod)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                print(<span class="string">&#x27;[KEYDOWN&#123;&#125;]:&#x27;</span>.<span class="built_in">format</span>(num), event.unicode, event.key, event.mod)</span><br><span class="line">    pygame.display.update()</span><br><span class="line">    fclock.tick(fps)</span><br></pre></td></tr></table></figure>
+<h3 id="5）壁球小游戏扩展"><a href="#5）壁球小游戏扩展" class="headerlink" title="5）壁球小游戏扩展"></a>5）壁球小游戏扩展</h3><p>扩展需求：鼠标左键摆放壁球，按键按下时壁球停止运动，按键按下并且移动时，壁球随着鼠标移动，当释放时壁球继续运动</p>
+<p>代码略…</p>
+<h2 id="5、色彩与绘图机制"><a href="#5、色彩与绘图机制" class="headerlink" title="5、色彩与绘图机制"></a>5、色彩与绘图机制</h2><h3 id="1）色彩表达：pygame-Color"><a href="#1）色彩表达：pygame-Color" class="headerlink" title="1）色彩表达：pygame.Color"></a>1）色彩表达：pygame.Color</h3><ul>
+<li>Color类用于表达色彩，使用RGB或RGBA色彩模式，A可选</li>
+<li>Color类可以用色彩名字、RGB值、HTML色彩格式等方式定义<ul>
+<li>Color(name)    eg.Color(‘green’)    </li>
+<li>Color(r,g,b,a)  eg.Color(190,190,190,255)</li>
+<li>Color(rgbvalue) eg.Color(‘#BEBEBEFF’)，对应十六进制表示</li>
+</ul>
+</li>
+<li>RGBA多了一个alpha通道，表示不透明度，取值0-255，通道值越大，不透明度越高</li>
+</ul>
+<h3 id="2）图形绘制机制"><a href="#2）图形绘制机制" class="headerlink" title="2）图形绘制机制"></a>2）图形绘制机制</h3><ul>
+<li>pygame.Rect表达一个矩形区域的类，用来存储坐标和长度信息</li>
+<li>pygame利用Rect类来操作图形/图像元素，提供如下属性：size、width、height、top、left、bottom、right、topleft…<br>提供如下方法：.copy()、.move()、…</li>
+<li>pygame.draw可绘制多种图形，如<ul>
+<li>.rect(Surface，color，Rect，width=0)矩形：Surface矩形的绘制屏幕、color矩形的绘制颜色、Rect矩形的绘制区域、绘制边缘的宽度默认为0即填充图形             </li>
+<li>.polygon(Surface,color,pointlist,width=0) 多边形   </li>
+<li>.circle(Surface,color,pos,radius,width=0) 圆形      </li>
+<li>.ellipse(Surface,color,Rect,width=0) 椭圆形</li>
+<li>.line() 直线</li>
+</ul>
+</li>
+</ul>
+<h3 id="3）图形绘制示例"><a href="#3）图形绘制示例" class="headerlink" title="3）图形绘制示例"></a>3）图形绘制示例</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> math <span class="keyword">import</span> pi</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> pygame</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">pygame.init()</span><br><span class="line">pygame.mixer.init()  <span class="comment"># 初始化混音器模块</span></span><br><span class="line">bg_size = width, height = <span class="number">600</span>, <span class="number">400</span></span><br><span class="line">screen = pygame.display.set_mode(bg_size)</span><br><span class="line">pygame.display.set_caption(<span class="string">&quot;pygame图形绘制&quot;</span>)  <span class="comment"># 设置窗口的标题</span></span><br><span class="line">GOLD = <span class="number">255</span>, <span class="number">251</span>, <span class="number">0</span></span><br><span class="line">RED = pygame.Color(<span class="string">&#x27;red&#x27;</span>)</span><br><span class="line">GREEN = pygame.Color(<span class="string">&#x27;green&#x27;</span>)</span><br><span class="line">WHITE = <span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span></span><br><span class="line">e1rect = pygame.draw.ellipse(screen, GREEN, (<span class="number">50</span>, <span class="number">50</span>, <span class="number">500</span>, <span class="number">3000</span>), <span class="number">3</span>)</span><br><span class="line">c1rect = pygame.draw.circle(screen, GOLD, (<span class="number">200</span>, <span class="number">180</span>), <span class="number">30</span>, <span class="number">5</span>)</span><br><span class="line">c2rect = pygame.draw.circle(screen, GOLD, (<span class="number">400</span>, <span class="number">180</span>), <span class="number">30</span>)</span><br><span class="line">r1rect = pygame.draw.rect(screen, RED, (<span class="number">170</span>, <span class="number">130</span>, <span class="number">60</span>, <span class="number">10</span>), <span class="number">3</span>)</span><br><span class="line">r2rect = pygame.draw.rect(screen, RED, (<span class="number">370</span>, <span class="number">130</span>, <span class="number">60</span>, <span class="number">10</span>))</span><br><span class="line">plist = [(<span class="number">295</span>, <span class="number">178</span>), (<span class="number">285</span>, <span class="number">250</span>), (<span class="number">260</span>, <span class="number">280</span>), (<span class="number">340</span>, <span class="number">280</span>), (<span class="number">315</span>, <span class="number">250</span>), (<span class="number">305</span>, <span class="number">170</span>)]</span><br><span class="line">l1rect = pygame.draw.lines(screen, GOLD, <span class="literal">True</span>, plist, <span class="number">2</span>)</span><br><span class="line">a1rect = pygame.draw.arc(screen, RED, (<span class="number">200</span>, <span class="number">220</span>, <span class="number">200</span>, <span class="number">100</span>), <span class="number">1.4</span> * pi, <span class="number">1.9</span> * pi, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">        <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:</span><br><span class="line">            sys.exit()</span><br><span class="line">    pygame.display.update()</span><br></pre></td></tr></table></figure>
+<p>运行结果：</p>
+<p><img src="/2021/02/14/pygame-study/image-20210215142257889.png" alt="image-20210215142257889"></p>
+<h3 id="4）文字绘制"><a href="#4）文字绘制" class="headerlink" title="4）文字绘制"></a>4）文字绘制</h3><h4 id="Ⅰ-文字绘制机制："><a href="#Ⅰ-文字绘制机制：" class="headerlink" title="Ⅰ. 文字绘制机制："></a>Ⅰ. 文字绘制机制：</h4><p>使用pygame.freetype向屏幕上绘制特定字体的文字（需要import引入）<br><code>注：文字不能直接print()，而是用像素根据字体点阵图绘制</code></p>
+<h4 id="Ⅱ-生成Font对象"><a href="#Ⅱ-生成Font对象" class="headerlink" title="Ⅱ. 生成Font对象"></a>Ⅱ. 生成Font对象</h4><ul>
+<li><p>**pygame.freetype.Font(file,size=0)**，根据字体和字号生成一个Font对象</p>
+<ul>
+<li><p>file：字体类型名称或路径，注意字体是否支持中文</p>
+</li>
+<li><p> size：字体的大小</p>
+</li>
+</ul>
+</li>
+<li><p>然后调用Font.render_to()或Font.render(）</p>
+<ul>
+<li>**Font.render_to(surf，dest，text，fgcolor=None，bgcolor=None，rotation=0，size=0)**，返回Rect类型     <ul>
+<li>surf：绘制字体的平面，Surface对象</li>
+<li>dest：在平面中的具体位置，（x，y）</li>
+<li>text：绘制的文字内容</li>
+<li>fgcolor：文字颜色</li>
+<li>bgcolor：背景颜色</li>
+<li>rotation：逆时针的旋转角度，取值0-359，部分字体可旋转</li>
+<li>size：文字大小，赋值该参数将覆盖Font中的设定值</li>
+</ul>
+</li>
+<li>**Font.render(text,fgcolor=None,bgcolor=None,rotation=0,size=0)**绘制具体文字，返回（Surface,Rect）</li>
+</ul>
+</li>
+</ul>
+<h4 id="Ⅲ-Surface讲解"><a href="#Ⅲ-Surface讲解" class="headerlink" title="Ⅲ. Surface讲解"></a>Ⅲ. Surface讲解</h4><ul>
+<li><strong>pygame.Surface</strong> 称为绘图层，或绘图平面，或图层<ul>
+<li>用于表示图形、文字或图像的绘制效果，与当前屏幕主图层可以并列存在，如果不绘制在主图层上，则不会被显示</li>
+</ul>
+</li>
+<li>主图层由pygame.display.set_mode()生成<ul>
+<li>在主图层上绘制其他图层使用**.blit()**方法：screen.blit(pygame.Surface,pygame.Rect)</li>
+</ul>
+</li>
+</ul>
+<h3 id="5）将碰壁球用文字来代替"><a href="#5）将碰壁球用文字来代替" class="headerlink" title="5）将碰壁球用文字来代替"></a>5）将碰壁球用文字来代替</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> pygame.freetype</span><br><span class="line"></span><br><span class="line">pygame.init()</span><br><span class="line">bg_size = width, height = <span class="number">600</span>, <span class="number">400</span></span><br><span class="line">screen = pygame.display.set_mode(bg_size)</span><br><span class="line">pygame.display.set_caption(<span class="string">&#x27;crash character game&#x27;</span>)</span><br><span class="line">ball = pygame.image.load(<span class="string">&#x27;../squash.png&#x27;</span>)</span><br><span class="line">ballrect = ball.get_rect()</span><br><span class="line">speed = [<span class="number">1</span>, <span class="number">1</span>]</span><br><span class="line">GOLD = <span class="number">255</span>, <span class="number">251</span>, <span class="number">0</span></span><br><span class="line">BLACK = <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span></span><br><span class="line">pos = [<span class="number">230</span>, <span class="number">160</span>]</span><br><span class="line">f1 = pygame.freetype.Font(<span class="string">&#x27;..\\font\\font.ttf&#x27;</span>, <span class="number">36</span>)</span><br><span class="line">f1rect = f1.render_to(screen, pos, <span class="string">&#x27;ACPASSER&#x27;</span>, fgcolor=GOLD, size=<span class="number">50</span>)</span><br><span class="line">fps = <span class="number">300</span>  <span class="comment"># Frames per Second 每秒帧率参数</span></span><br><span class="line">fclock = pygame.time.Clock()</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">for</span> event <span class="keyword">in</span> pygame.event.get():</span><br><span class="line">        <span class="keyword">if</span> event.<span class="built_in">type</span> == pygame.QUIT:</span><br><span class="line">            sys.exit()</span><br><span class="line">        <span class="keyword">elif</span> event.<span class="built_in">type</span> == pygame.KEYDOWN:  <span class="comment"># 加入键盘按下事件响应</span></span><br><span class="line">            <span class="keyword">if</span> event.key == pygame.K_LEFT:</span><br><span class="line">                speed[<span class="number">0</span>] = speed[<span class="number">0</span>] <span class="keyword">if</span> speed[<span class="number">0</span>] == <span class="number">0</span> <span class="keyword">else</span> (<span class="built_in">abs</span>(speed[<span class="number">0</span>]) - <span class="number">1</span>) * <span class="built_in">int</span>(speed[<span class="number">0</span>] / <span class="built_in">abs</span>(speed[<span class="number">0</span>]))</span><br><span class="line">            <span class="keyword">elif</span> event.key == pygame.K_RIGHT:</span><br><span class="line">                print(<span class="string">&#x27;速度增加&#x27;</span>)</span><br><span class="line">                speed[<span class="number">0</span>] = speed[<span class="number">0</span>] + <span class="number">1</span> <span class="keyword">if</span> speed[<span class="number">0</span>] &gt;= <span class="number">0</span> <span class="keyword">else</span> speed[<span class="number">0</span>] - <span class="number">1</span></span><br><span class="line">            <span class="keyword">elif</span> event.key == pygame.K_UP:</span><br><span class="line">                speed[<span class="number">1</span>] = speed[<span class="number">1</span>] + <span class="number">1</span> <span class="keyword">if</span> speed[<span class="number">1</span>] &gt;= <span class="number">0</span> <span class="keyword">else</span> speed[<span class="number">1</span>] - <span class="number">1</span></span><br><span class="line">            <span class="keyword">elif</span> event.key == pygame.K_DOWN:</span><br><span class="line">                speed[<span class="number">1</span>] = speed[<span class="number">1</span>] <span class="keyword">if</span> speed[<span class="number">1</span>] == <span class="number">0</span> <span class="keyword">else</span> (<span class="built_in">abs</span>(speed[<span class="number">1</span>]) - <span class="number">1</span>) * <span class="built_in">int</span>(speed[<span class="number">1</span>] / <span class="built_in">abs</span>(speed[<span class="number">1</span>]))</span><br><span class="line">    <span class="keyword">if</span> pos[<span class="number">0</span>] &lt;= <span class="number">0</span> <span class="keyword">or</span> pos[<span class="number">0</span>] + f1rect.width &gt; width:</span><br><span class="line">        speed[<span class="number">0</span>] = -speed[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">if</span> pos[<span class="number">1</span>] &lt;= <span class="number">0</span> <span class="keyword">or</span> pos[<span class="number">1</span>] + f1rect.height &gt; height:</span><br><span class="line">        speed[<span class="number">1</span>] = -speed[<span class="number">1</span>]</span><br><span class="line">    pos[<span class="number">0</span>] = pos[<span class="number">0</span>] + speed[<span class="number">0</span>]</span><br><span class="line">    pos[<span class="number">1</span>] = pos[<span class="number">1</span>] + speed[<span class="number">1</span>]</span><br><span class="line">    screen.fill(BLACK)</span><br><span class="line">    f1rect = f1.render_to(screen, pos, <span class="string">&#x27;ACPASSER&#x27;</span>, fgcolor=GOLD, size=<span class="number">50</span>)</span><br><span class="line">    pygame.display.update()</span><br><span class="line">    fclock.tick(fps)</span><br></pre></td></tr></table></figure>
+<p>效果图：</p>
+<p><img src="/2021/02/14/pygame-study/image-20210215143227205.png" alt="image-20210215143227205"></p>
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2021/02/14/pygame-study/" title="pygame_study">http://coderzqy.github.io/2021/02/14/pygame-study/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/pygame/" rel="tag"># pygame</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/11/Android/" rel="prev" title="Android">
+      <i class="fa fa-chevron-left"></i> Android
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/15/javaweb/" rel="next" title="javaweb前端学习">
+      javaweb前端学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pygame%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0"><span class="nav-number">1.</span> <span class="nav-text">pygame学习笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81pygame%E6%9C%80%E5%B0%8F%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6"><span class="nav-number">1.1.</span> <span class="nav-text">1、pygame最小游戏开发框架</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%EF%BC%89%E5%BC%95%E5%85%A5pygame%E5%92%8Csys"><span class="nav-number">1.1.1.</span> <span class="nav-text">1）引入pygame和sys</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%EF%BC%89%E5%88%9D%E5%A7%8B%E5%8C%96init-%E5%8F%8A%E8%AE%BE%E7%BD%AE"><span class="nav-number">1.1.2.</span> <span class="nav-text">2）初始化init()及设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%EF%BC%89%E8%8E%B7%E5%8F%96%E4%BA%8B%E4%BB%B6%E5%B9%B6%E9%80%90%E7%B1%BB%E5%93%8D%E5%BA%94"><span class="nav-number">1.1.3.</span> <span class="nav-text">3）获取事件并逐类响应</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%EF%BC%89%E5%88%B7%E6%96%B0%E5%B1%8F%E5%B9%95"><span class="nav-number">1.1.4.</span> <span class="nav-text">4）刷新屏幕</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%EF%BC%89%E6%9C%80%E5%B0%8F%E6%A1%86%E6%9E%B6%E4%BB%A3%E7%A0%81"><span class="nav-number">1.1.5.</span> <span class="nav-text">5）最小框架代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6%EF%BC%89%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">1.1.6.</span> <span class="nav-text">6）运行结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E3%80%81%E7%A2%B0%E5%A3%81%E7%90%83%E5%B0%8F%E6%B8%B8%E6%88%8F%E6%A1%88%E4%BE%8B"><span class="nav-number">1.2.</span> <span class="nav-text">2、碰壁球小游戏案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%EF%BC%89%E4%BB%8E%E9%9C%80%E6%B1%82%E5%88%B0%E5%AE%9E%E7%8E%B0%E7%9A%84%E4%B8%89%E4%B8%AA%E5%85%B3%E9%94%AE%E8%A6%81%E7%B4%A0"><span class="nav-number">1.2.1.</span> <span class="nav-text">1）从需求到实现的三个关键要素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%EF%BC%89%E5%A3%81%E7%90%83%E7%9A%84%E8%BD%BD%E5%85%A5"><span class="nav-number">1.2.2.</span> <span class="nav-text">2）壁球的载入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%EF%BC%89%E5%A3%81%E7%90%83%E7%9A%84%E7%A7%BB%E5%8A%A8"><span class="nav-number">1.2.3.</span> <span class="nav-text">3）壁球的移动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%EF%BC%89%E5%A3%81%E7%90%83%E7%9A%84%E5%8F%8D%E5%BC%B9%E8%BF%90%E5%8A%A8%EF%BC%88%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6%EF%BC%89"><span class="nav-number">1.2.4.</span> <span class="nav-text">4）壁球的反弹运动（逻辑控制）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%EF%BC%89%E5%A1%AB%E5%85%85%E8%83%8C%E6%99%AF"><span class="nav-number">1.2.5.</span> <span class="nav-text">5）填充背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6%EF%BC%89%E9%80%9A%E8%BF%87Rect%E5%AF%B9%E8%B1%A1%E5%BC%95%E5%AF%BC%E5%AF%B9%E5%A3%81%E7%90%83%E7%9A%84%E7%BB%98%E5%88%B6"><span class="nav-number">1.2.6.</span> <span class="nav-text">6）通过Rect对象引导对壁球的绘制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7%EF%BC%89%E8%8A%82%E5%A5%8F%E6%8E%A7%E5%88%B6"><span class="nav-number">1.2.7.</span> <span class="nav-text">7）节奏控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8%EF%BC%89%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="nav-number">1.2.8.</span> <span class="nav-text">8）完整代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9%EF%BC%89%E8%BF%90%E8%A1%8C%E6%95%88%E6%9E%9C%E6%88%AA%E5%9B%BE"><span class="nav-number">1.2.9.</span> <span class="nav-text">9）运行效果截图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10%EF%BC%89%E6%B7%BB%E5%8A%A0%E9%80%9F%E5%BA%A6%E6%8E%A7%E5%88%B6"><span class="nav-number">1.2.10.</span> <span class="nav-text">10）添加速度控制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0%E9%94%AE%E7%9B%98%E6%8C%89%E4%B8%8B%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94"><span class="nav-number">1.2.10.1.</span> <span class="nav-text">增加键盘按下事件响应</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E3%80%81%E5%B1%8F%E5%B9%95%E7%BB%98%E5%88%B6%E6%9C%BA%E5%88%B6"><span class="nav-number">1.3.</span> <span class="nav-text">3、屏幕绘制机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%EF%BC%89%E6%B8%B8%E6%88%8F%E5%B1%8F%E5%B9%95%E7%9A%84%E6%8E%A7%E5%88%B6%E2%80%94%E2%80%94pygame-display"><span class="nav-number">1.3.1.</span> <span class="nav-text">1）游戏屏幕的控制——pygame.display()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%EF%BC%89%E6%8E%A7%E5%88%B6%E9%9C%80%E6%B1%82"><span class="nav-number">1.3.2.</span> <span class="nav-text">2）控制需求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%EF%BC%89%E5%B1%8F%E5%B9%95%E7%BB%98%E5%88%B6%E7%9A%84%E9%87%8D%E8%A6%81%E5%87%BD%E6%95%B0"><span class="nav-number">1.3.3.</span> <span class="nav-text">3）屏幕绘制的重要函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A0-%E5%B1%8F%E5%B9%95%E5%B0%BA%E5%AF%B8%E5%92%8C%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Ⅰ. 屏幕尺寸和模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A1-%E7%AA%97%E5%8F%A3%E6%A0%87%E9%A2%98%E5%92%8C%E5%9B%BE%E6%A0%87"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">Ⅱ. 窗口标题和图标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A2-%E7%AA%97%E5%8F%A3%E6%84%9F%E7%9F%A5%E5%92%8C%E5%88%B7%E6%96%B0"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">Ⅲ. 窗口感知和刷新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A3-pygame%E8%BF%98%E6%8F%90%E4%BE%9BOpenGL%E5%92%8C%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F"><span class="nav-number">1.3.3.4.</span> <span class="nav-text">Ⅳ. pygame还提供OpenGL和硬件加速</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%E3%80%81%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6"><span class="nav-number">1.4.</span> <span class="nav-text">4、事件处理机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%EF%BC%89pygame%E4%B8%AD%E7%9A%84%E4%BA%8B%E4%BB%B6%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.4.1.</span> <span class="nav-text">1）pygame中的事件类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%EF%BC%89%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E7%9A%84%E9%87%8D%E8%A6%81%E5%87%BD%E6%95%B0"><span class="nav-number">1.4.2.</span> <span class="nav-text">2）事件处理的重要函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A0-%E5%A4%84%E7%90%86%E4%BA%8B%E4%BB%B6"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">Ⅰ. 处理事件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A1-%E6%93%8D%E4%BD%9C%E4%BA%8B%E4%BB%B6%E9%98%9F%E5%88%97"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">Ⅱ. 操作事件队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A2-%E7%94%9F%E6%88%90%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="nav-number">1.4.2.3.</span> <span class="nav-text">Ⅲ. 生成事件处理函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A2-%E9%BC%A0%E6%A0%87%E4%BA%8B%E4%BB%B6%E5%8F%8A%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.4.2.4.</span> <span class="nav-text">Ⅲ. 鼠标事件及类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%EF%BC%89%E4%BB%A3%E7%A0%81%E6%BC%94%E7%A4%BA"><span class="nav-number">1.4.3.</span> <span class="nav-text">3）代码演示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%EF%BC%89%E7%94%A8%E6%88%B7%E8%87%AA%E5%AE%9A%E4%B9%89%E4%BA%8B%E4%BB%B6%E6%BC%94%E7%A4%BA"><span class="nav-number">1.4.4.</span> <span class="nav-text">4）用户自定义事件演示</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%EF%BC%89%E5%A3%81%E7%90%83%E5%B0%8F%E6%B8%B8%E6%88%8F%E6%89%A9%E5%B1%95"><span class="nav-number">1.4.5.</span> <span class="nav-text">5）壁球小游戏扩展</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5%E3%80%81%E8%89%B2%E5%BD%A9%E4%B8%8E%E7%BB%98%E5%9B%BE%E6%9C%BA%E5%88%B6"><span class="nav-number">1.5.</span> <span class="nav-text">5、色彩与绘图机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%EF%BC%89%E8%89%B2%E5%BD%A9%E8%A1%A8%E8%BE%BE%EF%BC%9Apygame-Color"><span class="nav-number">1.5.1.</span> <span class="nav-text">1）色彩表达：pygame.Color</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%EF%BC%89%E5%9B%BE%E5%BD%A2%E7%BB%98%E5%88%B6%E6%9C%BA%E5%88%B6"><span class="nav-number">1.5.2.</span> <span class="nav-text">2）图形绘制机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%EF%BC%89%E5%9B%BE%E5%BD%A2%E7%BB%98%E5%88%B6%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.5.3.</span> <span class="nav-text">3）图形绘制示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%EF%BC%89%E6%96%87%E5%AD%97%E7%BB%98%E5%88%B6"><span class="nav-number">1.5.4.</span> <span class="nav-text">4）文字绘制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A0-%E6%96%87%E5%AD%97%E7%BB%98%E5%88%B6%E6%9C%BA%E5%88%B6%EF%BC%9A"><span class="nav-number">1.5.4.1.</span> <span class="nav-text">Ⅰ. 文字绘制机制：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A1-%E7%94%9F%E6%88%90Font%E5%AF%B9%E8%B1%A1"><span class="nav-number">1.5.4.2.</span> <span class="nav-text">Ⅱ. 生成Font对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%85%A2-Surface%E8%AE%B2%E8%A7%A3"><span class="nav-number">1.5.4.3.</span> <span class="nav-text">Ⅲ. Surface讲解</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%EF%BC%89%E5%B0%86%E7%A2%B0%E5%A3%81%E7%90%83%E7%94%A8%E6%96%87%E5%AD%97%E6%9D%A5%E4%BB%A3%E6%9B%BF"><span class="nav-number">1.5.5.</span> <span class="nav-text">5）将碰壁球用文字来代替</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="君莫良"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">君莫良</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=36496695&auto=0&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">君莫良</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>
