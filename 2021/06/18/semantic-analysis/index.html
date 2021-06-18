@@ -20,30 +20,34 @@
     var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="世人慌慌张张，不过图碎银几两">
-<meta property="og:type" content="website">
-<meta property="og:title" content="君莫良の博客">
-<meta property="og:url" content="http://coderzqy.github.io/index.html">
+  <meta name="description" content="编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成1、语法制导翻译​    对文法中的每个产生式都附加一个语义动作或语义子程序，且在语法分析过程中，每当需要使用一个产生式进行推导或规约时，语法分析程序除执行相应的语法分析动作之外，还要执行相应地语义动作或语义子程序。每个语义子程序都指明了相应产生式中各个符号的具体含义，并规定了使用该产生式进行分析时所应采取的语义动作。 2、实验内">
+<meta property="og:type" content="article">
+<meta property="og:title" content="semantic_analysis">
+<meta property="og:url" content="http://coderzqy.github.io/2021/06/18/semantic-analysis/index.html">
 <meta property="og:site_name" content="君莫良の博客">
-<meta property="og:description" content="世人慌慌张张，不过图碎银几两">
+<meta property="og:description" content="编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成1、语法制导翻译​    对文法中的每个产生式都附加一个语义动作或语义子程序，且在语法分析过程中，每当需要使用一个产生式进行推导或规约时，语法分析程序除执行相应的语法分析动作之外，还要执行相应地语义动作或语义子程序。每个语义子程序都指明了相应产生式中各个符号的具体含义，并规定了使用该产生式进行分析时所应采取的语义动作。 2、实验内">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-06-18T14:04:18.000Z">
+<meta property="article:modified_time" content="2021-06-18T15:14:32.997Z">
 <meta property="article:author" content="君莫良">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="语法制导的语义分析">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://coderzqy.github.io/">
+<link rel="canonical" href="http://coderzqy.github.io/2021/06/18/semantic-analysis/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 <script src="/lib/fireworks.js"></script>
-  <title>君莫良の博客</title>
+  <title>semantic_analysis | 君莫良の博客</title>
   
 
 
@@ -157,9 +161,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -175,10 +180,9 @@
       <meta itemprop="name" content="君莫良の博客">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/06/18/semantic-analysis/" class="post-title-link" itemprop="url">semantic_analysis</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          semantic_analysis
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -201,6 +205,13 @@
             </span>
 
           
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
 
         </div>
       </header>
@@ -211,7 +222,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="编译原理实验6——基于SLR-1-分析法的语法制导翻译及中间代码生成"><a href="#编译原理实验6——基于SLR-1-分析法的语法制导翻译及中间代码生成" class="headerlink" title="编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成"></a>编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成</h1><h2 id="1、语法制导翻译"><a href="#1、语法制导翻译" class="headerlink" title="1、语法制导翻译"></a>1、语法制导翻译</h2><p>​    对文法中的每个产生式都附加一个语义动作或语义子程序，且在语法分析过程中，每当需要使用一个产生式进行推导或规约时，语法分析程序除执行相应的<strong>语法分析</strong>动作之外，还要执行相应地<strong>语义动作</strong>或语义子程序。每个语义子程序都指明了相应产生式中各个符号的具体含义，并规定了使用该产生式进行分析时所应采取的语义动作。</p>
+        <h1 id="编译原理实验6——基于SLR-1-分析法的语法制导翻译及中间代码生成"><a href="#编译原理实验6——基于SLR-1-分析法的语法制导翻译及中间代码生成" class="headerlink" title="编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成"></a>编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成</h1><h2 id="1、语法制导翻译"><a href="#1、语法制导翻译" class="headerlink" title="1、语法制导翻译"></a>1、语法制导翻译</h2><p>​    对文法中的每个产生式都附加一个语义动作或语义子程序，且在语法分析过程中，每当需要使用一个产生式进行推导或规约时，语法分析程序除执行相应的<strong>语法分析</strong>动作之外，还要执行相应地<strong>语义动作</strong>或语义子程序。每个语义子程序都指明了相应产生式中各个符号的具体含义，并规定了使用该产生式进行分析时所应采取的语义动作。</p>
 <h2 id="2、实验内容"><a href="#2、实验内容" class="headerlink" title="2、实验内容"></a>2、实验内容</h2><p>基于SLR(1)文法，完成以下描述赋值语句语法制导生成中间代码三地址码的过程。</p>
 <ul>
 <li><p>G[E]：<br>S→V=E</p>
@@ -235,7 +246,6 @@
 </ul>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">================待分析的句子=================</span><br><span class="line">a+b*(c-d)/<span class="number">2</span></span><br><span class="line">================分析过程如下=================</span><br><span class="line">状态栈：[0]                                      符号栈：[#]                                 输入流：a+b*(c-d)/2#                                    产生式：</span><br><span class="line">状态栈：[0, 2]                                   符号栈：[#, a]                              输入流：+b*(c-d)/2#                                     产生式：</span><br><span class="line">缺少    = </span><br><span class="line">分析错误</span><br></pre></td></tr></table></figure>
 
-      
     </div>
     
     
@@ -243,367 +253,75 @@
 
     <div>
     
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
     </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
       
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/30/SLR-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/30/SLR-1/" class="post-title-link" itemprop="url">SLR_1</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-30 18:54:31" itemprop="dateCreated datePublished" datetime="2021-05-30T18:54:31+08:00">2021-05-30</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-18 23:10:19" itemprop="dateModified" datetime="2021-06-18T23:10:19+08:00">2021-06-18</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
       
-          <h1 id="编译原理实验5——SLR-1-文法分析器实现"><a href="#编译原理实验5——SLR-1-文法分析器实现" class="headerlink" title="编译原理实验5——SLR(1)文法分析器实现"></a>编译原理实验5——SLR(1)文法分析器实现</h1><h2 id="1、代码功能："><a href="#1、代码功能：" class="headerlink" title="1、代码功能："></a>1、代码功能：</h2><p>（1）计算非终结符的FIRST和FOLLOW集</p>
-<p>（2）构造SLR分析表</p>
-<p>（3）判断该文法是否为SLR文法</p>
-<p>（4）输入字符串，按照SLR分析法判断该字符串的语法是否正确，并给出判断过程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/30/SLR-1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
         
-      
-    </div>
-    
-    
-    
 
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/20/operator-precedence/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/20/operator-precedence/" class="post-title-link" itemprop="url">operator_precedence</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-20 21:34:12" itemprop="dateCreated datePublished" datetime="2021-05-20T21:34:12+08:00">2021-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-21 07:58:31" itemprop="dateModified" datetime="2021-05-21T07:58:31+08:00">2021-05-21</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="编译原理实验4——算符优先文法实现表达式求值"><a href="#编译原理实验4——算符优先文法实现表达式求值" class="headerlink" title="编译原理实验4——算符优先文法实现表达式求值"></a>编译原理实验4——算符优先文法实现表达式求值</h1><h2 id="1、概述"><a href="#1、概述" class="headerlink" title="1、概述"></a>1、概述</h2><p>​       算符优先分析法(Operator Precedence Parse)是仿效四则运算的计算过程而构造的一种语法分析方法。算符优先分析法的关键是比较两个相继出现的终结符的优先级而决定应采取的动作。</p>
-<ul>
-<li>优点：简单，有效，适合表达式的分析。</li>
-<li>缺点：只适合于算符优先文法，是一个不大的文法类。</li>
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2021/06/18/semantic-analysis/" title="semantic_analysis">http://coderzqy.github.io/2021/06/18/semantic-analysis/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
 </ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/20/operator-precedence/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
+</div>
 
-    <div>
-    
-    </div>
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E7%9A%84%E8%AF%AD%E4%B9%89%E5%88%86%E6%9E%90/" rel="tag"># 语法制导的语义分析</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/30/SLR-1/" rel="prev" title="SLR_1">
+      <i class="fa fa-chevron-left"></i> SLR_1
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
       </footer>
+    
   </article>
   
   
   
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/20/LL1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/20/LL1/" class="post-title-link" itemprop="url">LL1</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-20 21:24:28" itemprop="dateCreated datePublished" datetime="2021-05-20T21:24:28+08:00">2021-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-30 23:39:05" itemprop="dateModified" datetime="2021-05-30T23:39:05+08:00">2021-05-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="编译原理实验3——LL-1-文法分析实现"><a href="#编译原理实验3——LL-1-文法分析实现" class="headerlink" title="编译原理实验3——LL(1)文法分析实现"></a>编译原理实验3——LL(1)文法分析实现</h1><h2 id="1、LL-1-文法介绍"><a href="#1、LL-1-文法介绍" class="headerlink" title="1、LL(1)文法介绍"></a>1、LL(1)文法介绍</h2><p>对文法G的句子进行确定的自顶向下语法分析的充分必要条件是：G的任意两个具有相同左部的产生式A—&gt;α|β 满足下列条件：</p>
-<p>（1）如果α、β均不能推导出ε，则 FIRST(α) ∩ FIRST(β) = ∅。</p>
-<p>（2）α 和 β 至多有一个能推导出 ε。</p>
-<p>（3）如果 β *═&gt; ε，则 FIRST(α) ∩ FOLLOW(A) = ∅。</p>
-<p>将满足上述条件的文法称为LL(1)文法。</p>
-<h2 id="2、实验要求"><a href="#2、实验要求" class="headerlink" title="2、实验要求"></a>2、实验要求</h2><ol>
-<li>给定文法构造FIRST集、SELECT集与FOLLOW集。</li>
-<li>构造文法预测分析表。</li>
-<li>进行语法分析，构造语法分析过程表</li>
-</ol>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/20/LL1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/04/01/smbms/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/04/01/smbms/" class="post-title-link" itemprop="url">smbms</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-04-01 10:55:50 / 修改时间：11:00:31" itemprop="dateCreated datePublished" datetime="2021-04-01T10:55:50+08:00">2021-04-01</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/javaweb/" itemprop="url" rel="index"><span itemprop="name">javaweb</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="超市订单管理系统SMBMS"><a href="#超市订单管理系统SMBMS" class="headerlink" title="超市订单管理系统SMBMS"></a>超市订单管理系统SMBMS</h1><p>javaweb实战项目学习笔记，参考视频：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV12J411M7Sj?p=1">狂神说Java</a></p>
-<h2 id="1、基本架构"><a href="#1、基本架构" class="headerlink" title="1、基本架构"></a>1、基本架构</h2><p><img src="/2021/04/01/smbms/image-20210226000203056-1617245792889.png" alt="image-20210226000203056"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/04/01/smbms/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
 
 
 
@@ -655,6 +373,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86%E5%AE%9E%E9%AA%8C6%E2%80%94%E2%80%94%E5%9F%BA%E4%BA%8ESLR-1-%E5%88%86%E6%9E%90%E6%B3%95%E7%9A%84%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E7%BF%BB%E8%AF%91%E5%8F%8A%E4%B8%AD%E9%97%B4%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90"><span class="nav-number">1.</span> <span class="nav-text">编译原理实验6——基于SLR(1)分析法的语法制导翻译及中间代码生成</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E7%BF%BB%E8%AF%91"><span class="nav-number">1.1.</span> <span class="nav-text">1、语法制导翻译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E3%80%81%E5%AE%9E%E9%AA%8C%E5%86%85%E5%AE%B9"><span class="nav-number">1.2.</span> <span class="nav-text">2、实验内容</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E3%80%81%E8%AE%BE%E8%AE%A1%E8%A6%81%E6%B1%82"><span class="nav-number">1.3.</span> <span class="nav-text">3、设计要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%E3%80%81%E7%A8%8B%E5%BA%8F%E4%BB%A3%E7%A0%81"><span class="nav-number">1.4.</span> <span class="nav-text">4、程序代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5%E3%80%81%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.5.</span> <span class="nav-text">5、测试结果</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
