@@ -123,17 +123,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">38</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">39</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">8</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">19</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
 
   </li>
   </ul>
@@ -159,6 +159,134 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">索引调优</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-10-18 11:58:17 / 修改时间：12:24:07" itemprop="dateCreated datePublished" datetime="2022-10-18T11:58:17+08:00">2022-10-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/course/" itemprop="url" rel="index"><span itemprop="name">course</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="PJ——索引调优"><a href="#PJ——索引调优" class="headerlink" title="PJ——索引调优"></a>PJ——索引调优</h1><h2 id="1、任务要求"><a href="#1、任务要求" class="headerlink" title="1、任务要求"></a>1、任务要求</h2><ul>
+<li><p>阅读材料：<a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1995/P562.PDF">J. M. Hellerstein, J. F. Naughton, A. Pfeffer. Generalized Search Trees for Database Systems. In VLDB 1995.</a></p>
+</li>
+<li><p>背景描述：GiST 的意思是通用的搜索树（Generalized Search Tree），它是一种平衡树结构的访问方法，在系统中作为一个基本模版，可以使用它实现任意索引模式。B-trees、R-trees和许多其它的索引模式都可以用 GiST 实现。</p>
+</li>
+<li><p>作业要求：</p>
+<ol>
+<li><p>阅读材料的简要阅读报告 (pdf)</p>
+</li>
+<li><p>索引实践报告（二选一）</p>
+<ol>
+<li>对PG代码中的Gist使用性能进行分析，并形成报告 (pdf)<ul>
+<li>PG支持快速造数据，数据量建议百万条及以上</li>
+<li>主要为 <strong>Gist，B-trees，R-trees，RD-trees</strong>之间的性能比较分析，参考「参考材料2」</li>
+</ul>
+</li>
+<li>用PG中的Gist实现一类索引，并形成报告 (pdf, source codes)<ul>
+<li>可选索引：<strong>B+trees，Hash，倒排索引</strong></li>
+<li>实现规范参见「参考材料3」</li>
+<li>源码组织类似「参考材料4」即可，包含测试和README</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>README，标明小组人员及分工表</p>
+</li>
+</ol>
+<ul>
+<li>以上所有文件压缩在一个zip文件内，文件名「姓名1_学号1，姓名2 _学号2….zip」</li>
+<li>推荐使用PostgreSQL 14.x Linux</li>
+</ul>
+</li>
+<li><p>参考材料</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/current/btree-gist.html">PostgreSQL: Documentation: 14: F.7. btree_gist</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.mengqingzhong.com/2020/10/01/postgresql-index-gist-5/">PostgreSQL索引(5) – GiST – PostgreSQL数据库内核探究 (mengqingzhong.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/current/gist-extensibility.html">PostgreSQL: Documentation: 14: 65.3. Extensibility</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/jinyyu/tlsh_gist">jinyyu/tlsh_gist (github.com)</a></li>
+</ol>
+</li>
+<li><p>附加说明</p>
+<ul>
+<li><p>小组/个人作业，每组提交一份文件，每组成员得分相同</p>
+</li>
+<li><p>四个作业之一，取已做作业中的最高分作为作业得分</p>
+</li>
+<li><p>本次作业结束后可换组</p>
+</li>
+</ul>
+</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+    
+    </div>
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -495,93 +623,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/30/SLR-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/30/SLR-1/" class="post-title-link" itemprop="url">SLR_1</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-30 18:54:31" itemprop="dateCreated datePublished" datetime="2021-05-30T18:54:31+08:00">2021-05-30</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-18 23:10:19" itemprop="dateModified" datetime="2021-06-18T23:10:19+08:00">2021-06-18</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="编译原理实验5——SLR-1-文法分析器实现"><a href="#编译原理实验5——SLR-1-文法分析器实现" class="headerlink" title="编译原理实验5——SLR(1)文法分析器实现"></a>编译原理实验5——SLR(1)文法分析器实现</h1><h2 id="1、代码功能："><a href="#1、代码功能：" class="headerlink" title="1、代码功能："></a>1、代码功能：</h2><p>（1）计算非终结符的FIRST和FOLLOW集</p>
-<p>（2）构造SLR分析表</p>
-<p>（3）判断该文法是否为SLR文法</p>
-<p>（4）输入字符串，按照SLR分析法判断该字符串的语法是否正确，并给出判断过程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/30/SLR-1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -653,20 +694,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">39</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="PJ——索引调优1、任务要求 阅读材料：J. M. Hellerstein, J. F. Naughton, A. Pfeffer. Generalized Search Trees for Database Systems. In VLDB 1995.  背景描述：GiST 的意思是通用的搜索树（Generalized Search Tree），它是一种平衡树结构的访问方法，在系统中作为一个基本">
+<meta property="og:type" content="article">
+<meta property="og:title" content="索引调优">
+<meta property="og:url" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/index.html">
+<meta property="og:site_name" content="君莫良の博客">
+<meta property="og:description" content="PJ——索引调优1、任务要求 阅读材料：J. M. Hellerstein, J. F. Naughton, A. Pfeffer. Generalized Search Trees for Database Systems. In VLDB 1995.  背景描述：GiST 的意思是通用的搜索树（Generalized Search Tree），它是一种平衡树结构的访问方法，在系统中作为一个基本">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Sketch%20of%20a%20database%20search%20tree.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Compression%20Loss.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/performance%20in%20the%20parameter%20space.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/explain%20分析执行计划.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/统计数据.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/b-tree%20索引示例.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/b-tree%20索引示例（禁用位图扫描）.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/gist(r-tree)%20索引示例.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/btree_gist%20索引插件对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/标量类型排序%20使用Gist索引前.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/标量类型排序%20使用Gist索引后.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree%20索引和%20Gist%20索引性能对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree%20索引和%20Gist%20占用空间对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/PG中全文检索的简要介绍.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/gist(RD-tree)%20索引示例.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/性能对比实验：B-tree%20数据表显示.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/性能对比实验：R-tree%20数据表显示.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/性能对比实验：RD-tree%20数据表显示.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree和Gist等值查询性能对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Btree等值查询时间与查询次数的关系.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree、Gist和无索引三种情况非等值查询性能对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist非等值查询时间与查询次数的关系.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree排序与非排序查询性能对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist查询后排序时间与数据量的关系.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/无索引查询后排序时间与数据量的关系.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/R-tree和Gist范围查询性能对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/R-tree性能与查询次数的关系.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist性能与查询次数的关系.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/R-tree和GistKNN查询性能对比.png">
+<meta property="og:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist实现的RD-tree与无索引的性能对比.png">
+<meta property="article:published_time" content="2022-10-18T03:58:17.000Z">
+<meta property="article:modified_time" content="2022-10-18T04:24:07.027Z">
+<meta property="article:author" content="君莫良">
+<meta property="article:tag" content="FDU-数据库系统管理与调优课程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Sketch%20of%20a%20database%20search%20tree.png">
+
+<link rel="canonical" href="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>索引调优 | 君莫良の博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">君莫良の博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一只努力学习编程的猪头少年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">39</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          索引调优
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-10-18 11:58:17 / 修改时间：12:24:07" itemprop="dateCreated datePublished" datetime="2022-10-18T11:58:17+08:00">2022-10-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/course/" itemprop="url" rel="index"><span itemprop="name">course</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="PJ——索引调优"><a href="#PJ——索引调优" class="headerlink" title="PJ——索引调优"></a>PJ——索引调优</h1><h2 id="1、任务要求"><a href="#1、任务要求" class="headerlink" title="1、任务要求"></a>1、任务要求</h2><ul>
+<li><p>阅读材料：<a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1995/P562.PDF">J. M. Hellerstein, J. F. Naughton, A. Pfeffer. Generalized Search Trees for Database Systems. In VLDB 1995.</a></p>
+</li>
+<li><p>背景描述：GiST 的意思是通用的搜索树（Generalized Search Tree），它是一种平衡树结构的访问方法，在系统中作为一个基本模版，可以使用它实现任意索引模式。B-trees、R-trees和许多其它的索引模式都可以用 GiST 实现。</p>
+</li>
+<li><p>作业要求：</p>
+<ol>
+<li><p>阅读材料的简要阅读报告 (pdf)</p>
+</li>
+<li><p>索引实践报告（二选一）</p>
+<ol>
+<li>对PG代码中的Gist使用性能进行分析，并形成报告 (pdf)<ul>
+<li>PG支持快速造数据，数据量建议百万条及以上</li>
+<li>主要为 <strong>Gist，B-trees，R-trees，RD-trees</strong>之间的性能比较分析，参考「参考材料2」</li>
+</ul>
+</li>
+<li>用PG中的Gist实现一类索引，并形成报告 (pdf, source codes)<ul>
+<li>可选索引：<strong>B+trees，Hash，倒排索引</strong></li>
+<li>实现规范参见「参考材料3」</li>
+<li>源码组织类似「参考材料4」即可，包含测试和README</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>README，标明小组人员及分工表</p>
+</li>
+</ol>
+<ul>
+<li>以上所有文件压缩在一个zip文件内，文件名「姓名1_学号1，姓名2 _学号2….zip」</li>
+<li>推荐使用PostgreSQL 14.x Linux</li>
+</ul>
+</li>
+<li><p>参考材料</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/current/btree-gist.html">PostgreSQL: Documentation: 14: F.7. btree_gist</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.mengqingzhong.com/2020/10/01/postgresql-index-gist-5/">PostgreSQL索引(5) – GiST – PostgreSQL数据库内核探究 (mengqingzhong.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/current/gist-extensibility.html">PostgreSQL: Documentation: 14: 65.3. Extensibility</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/jinyyu/tlsh_gist">jinyyu/tlsh_gist (github.com)</a></li>
+</ol>
+</li>
+<li><p>附加说明</p>
+<ul>
+<li><p>小组/个人作业，每组提交一份文件，每组成员得分相同</p>
+</li>
+<li><p>四个作业之一，取已做作业中的最高分作为作业得分</p>
+</li>
+<li><p>本次作业结束后可换组</p>
+</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="2、材料阅读报告"><a href="#2、材料阅读报告" class="headerlink" title="2、材料阅读报告"></a>2、材料阅读报告</h2><h3 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1. Introduction"></a>1. Introduction</h3><h4 id="1、实现搜索树扩展的两种主要思路"><a href="#1、实现搜索树扩展的两种主要思路" class="headerlink" title="1、实现搜索树扩展的两种主要思路"></a>1、实现搜索树扩展的两种主要思路</h4><ol>
+<li>$Specialized\space Search\space Tree$：为解决特定的问题实现专用的搜索树。问题：<strong>实现和维护搜索树的工作量巨大</strong>；随着新应用产生，需要<strong>重新开发</strong>一种搜索树</li>
+<li>$Search\space Trees\space For\space Extensible\space Data\space Types$：为避免开发新的搜索树类型，扩展其支持的数据类型。问题：虽然扩展了支持的数据类型，但是并没有扩展搜索树上可支持的查询的种类，依然只能支持相等或者范围查询（<strong>不灵活</strong>）</li>
+</ol>
+<h4 id="2、Gist-优点"><a href="#2、Gist-优点" class="headerlink" title="2、Gist 优点"></a>2、Gist 优点</h4><ol>
+<li>在支持的<u>数据类型</u>和<u>查询种类</u>方面都很容易扩展（<strong>可扩展性</strong>）</li>
+<li>可以实现基于同一个代码库实现不同的索引，支持不同的应用（<strong>统一性</strong>）</li>
+<li>很容易配置，为了实现不同用途的搜索树，只需要在数据库中注册 $6$ 种方法（<strong>易配置</strong>）</li>
+</ol>
+<h4 id="3、Gist-存在的问题"><a href="#3、Gist-存在的问题" class="headerlink" title="3、Gist 存在的问题"></a>3、Gist 存在的问题</h4><ul>
+<li>$Gist$ 产生的搜索树<u>并不总是可以有效地支持查询</u>，何时以何种方式在一些非标准化的问题上构建一棵高效的查询树，仍需要进一步通过试验进行探索。</li>
+</ul>
+<h4 id="4、文章结构"><a href="#4、文章结构" class="headerlink" title="4、文章结构"></a>4、文章结构</h4><ul>
+<li><p>第 $2$ 节：说明并概括了数据库搜索树的基本特性</p>
+</li>
+<li><p>第 $3$ 节：介绍了广义搜索树对象及其结构、属性和行为</p>
+</li>
+<li><p>第 $4$ 节：提供了三种不同类型的搜索树的 $GiST$ 实现</p>
+</li>
+<li><p>第 $5$ 节：介绍了一些性能结果，探讨了构建有效搜索树所涉及的问题</p>
+</li>
+<li><p>第 $6$ 节：检查了在成熟的 $DBMS$ 中实现 $GiST$ 时需要考虑的一些细节</p>
+</li>
+<li><p>第 $7$ 节：最后总结了这项工作的重要性，以及未来的研究方向</p>
+</li>
+</ul>
+<h3 id="2-The-Gist-of-Database-Search-Trees"><a href="#2-The-Gist-of-Database-Search-Trees" class="headerlink" title="2. The Gist of Database Search Trees"></a>2. The Gist of Database Search Trees</h3><h4 id="1、搜索树介绍"><a href="#1、搜索树介绍" class="headerlink" title="1、搜索树介绍"></a>1、搜索树介绍</h4><ul>
+<li>简单示意图如下：</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Sketch of a database search tree.png" alt="Sketch of a database search tree" style="zoom:80%;">
+
+<ul>
+<li><p>搜索原理：每个内部节点都包含一系列 $key$ 和 $pointer$。要搜索与查询谓词 $q$ 匹配的元组，需要从根节点开始查找。对于节点上的每个指针，如果关联的 $key$ 与 $q$ 一致，即 $key $不排除指针下方存储的数据可能匹配 $q$ 的可能性，则遍历指针下方的子树，直到找到所有匹配的数据。</p>
+</li>
+<li><p>$key$ 的唯一限制：必须在逻辑上匹配存储在它下面的每一个数据，以便一致性检查不会遗漏任何有效数据。在 B+tree 和 R-tree 中，$key$ 的<strong>本质</strong>是一个 <u>“包含” 谓词</u>：它描述了一个连续的区域，其中包含 $pointer$ 下的所有数据。但是，“包含” 谓词并不是唯一可能出现的关系。就像在 R-tree 中，节点上的 $key$ 可能出现 <u>“重叠” 这样的关系</u>，即一个节点上的两个 $key$ 下面可能保存着某些相同的元组。</p>
+</li>
+</ul>
+<h4 id="2、Gist-设计思路"><a href="#2、Gist-设计思路" class="headerlink" title="2、Gist 设计思路"></a>2、Gist 设计思路</h4><ul>
+<li><p>$key$ 的设计：搜索关键字 $key$ 是可以对其下的每一个数据都成立的任意谓词。如果给定这样一个灵活的数据结构，用户可以通过将数据组织成任意嵌套的子类别来自由地形成树，每一个都可以用一些特殊的谓词来标记。反过来，抓住数据库搜索树的<strong>本质</strong>：它是数据集分区的层次结构，每一个分区都有一个分类，用以保存分区中的所有数据，可以基于分类进行<u>任意谓词</u>的搜索。</p>
+</li>
+<li><p>谓词 $q$ 的设计：为了支持对给定谓词 $q$ 的搜索，用户必须提供一个返回布尔类型的方法来判断 $q$ 是否与给定的 $key$ 一致，搜索通过遍历与 $key$ 关联的指针来进行。当节点数据过多或者占用空间过大时，通过用户提供的分裂算法来控制数据的分组，并且可以使用用户提供的 $key$ 完成对分组的表征。因此，通过向用户公开关键方法和拆分方法，可以构建任意的搜索树，支持可扩展的查询集。</p>
+</li>
+</ul>
+<h3 id="3-The-Generalized-Search-Tree"><a href="#3-The-Generalized-Search-Tree" class="headerlink" title="3. The Generalized  Search Tree"></a>3. The Generalized  Search Tree</h3><h4 id="3-1-structure"><a href="#3-1-structure" class="headerlink" title="3.1 structure"></a>3.1 structure</h4><p>​    $Gist$  是一颗平衡树，它的每个节点的扇出在 $kM$ 和 $M$ 之间，其中 $\frac{2}{M}\leqslant k\leqslant \frac{1}{2}$，根节点的扇出可以在 $2$ 和 $M$ 之间。其中常数 k 被称为最小填充因子，叶子节点包含 $(p,\space ptr)$ 这样的键值对，其中 $p$ 是被用作搜索关键字的谓词，而 $ptr$ 是<u>数据库中某个元组的标识符</u>。非叶子节点包含 $(p,\space ptr)$ 这样的键值对，其中 $p$ 是被用作搜索关键字的谓词，而 $ptr$ 是<u>指向另一个节点的指针</u></p>
+<p>​    谓词可以包含任意数量的自由变量，只要树的叶子节点引用的任意单个元组能够装下，为了方便说明，这里假设树中的各项占用空间大小是一样的，可变大小的项在第 $6$ 节介绍。假设给定项 $E=(p,\space ptr)$ 的实现中，可以访问 $E$ 当前所在的节点</p>
+<h4 id="3-2-Properties"><a href="#3-2-Properties" class="headerlink" title="3.2 Properties"></a>3.2 Properties</h4><p>以下属性在 $Gist$ 中是固定的：</p>
+<ol>
+<li>除了根节点外每个节点包含 $kM$ 到 $M$ 个索引项</li>
+<li>每个叶节点中的索引项 $(p,\space ptr)$ 在用指定的元组实例化时，$p$ 为 $true$（即 $p$ 对元组成立）</li>
+<li>每个非叶子节点中的索引项 $(p,\space ptr)$，当使用从 $ptr$ 可达的任意元组对其实例化时，$p$ 为 $true$。和 $R-tree$ 不同的是：对于某个从<br>$ptr$ 可达的索引项 $(p’,\space ptr’)$，不要求 $p’\rightarrow p$，只要 $p$ 和 $p’$ 都适用于从 $ptr’$ 可达的元组</li>
+<li>根节点至少有两个子节点，除非它本身也是叶子节点</li>
+<li>所有叶子节点出现在同一层</li>
+</ol>
+<h4 id="3-3-Key-Method"><a href="#3-3-Key-Method" class="headerlink" title="3.3 Key Method"></a>3.3 Key Method</h4><p>​    原则上，$Gist$ 中的 $key$ 可以是任意的谓词。实际使用中，$key$ 来自用户定义的对象，同时提供 $Gist$ 需要的一些方法的实现。例如， B+tree 中 $key$ 是数字类型，标识数据的范围；R-tree 中 $key$ 的类型是外接矩阵，标识区域等等。</p>
+<p>​    以下 $6$ 个关键的方法，是预定义的需要用户实现的方法：</p>
+<ol>
+<li>$\mathbf{Consistent}(E,q)$：给定一个索引项 $E=(p,\space ptr)$ 以及一个查询谓词 $q$，如果 $p\wedge q$ 一定不满足，返回 $false$，否则返回 $true$。==注意==：这里不需要精确查找，$\mathbf{Consistent}$ 有可能产生误报，会导致不必要的子树的查询，从而<strong>影响性能</strong>，但算法<strong>正确性不受影响</strong>。</li>
+<li>$\mathbf{Union}(P)$：给定一个索引项的集合 $P$，包含索引项 $(p_1,ptr_1),…,(p_n,ptr_n)$，可以通过 $(p_1\vee p_2\vee … p_n)\rightarrow r$ 的形式返回谓词 $r$，$r$ 包含 $ptr_1$ 到 $ptr_n$ 所有的元组</li>
+<li>$\mathbf{Compress}(E)$：给定索引项 $E=(p,\space ptr)$，返回索引项 $(\pi,ptr)$，其中 $\pi$ 是 $p$ 的压缩表示</li>
+<li>$\mathbf{Decompress}(E)$：给定一个压缩后的索引项 $E=(\pi,\space ptr)$，其中，$\pi=\mathbf{Compress}(p)$，返回一个索引项 $(r,ptr)$，满足 $p\rightarrow r$。==注意==：这可能是一种有损的压缩，因为不需要满足 $p\leftrightarrow r$</li>
+<li>$\mathbf{Penalty}(E_1,E_2)$：给定两个索引项 $E_1=(p_1,\space ptr_1)$，$E_2=(p_2,\space ptr_2)$，返回一个将 $E_2$ 插入以 $E_1$ 为根的子树的代价。该方法用于辅助插入和分裂算法</li>
+<li>$\mathbf{PickSplit}(P)$：给定一个包含 $M+1$ 个索引项的节点 $P$，将 $P$ 分裂为两个集合 $P_1$ 和 $P_2$，每一个至少包含 $kM$ 个索引项，通常希望以一种最优的方式进行拆分，但最终取决于用户</li>
+</ol>
+<h4 id="3-4-Tree-Methods"><a href="#3-4-Tree-Methods" class="headerlink" title="3.4 Tree Methods"></a>3.4 Tree Methods</h4><p>​    上一小节提到的方法需要开发者提供，本小节的方法是由 $Gist$ 提供，==注意==：$keys$ 在节点上是压缩的，从节点读取时需要解压缩，后续不在赘述。</p>
+<h5 id="1-Search"><a href="#1-Search" class="headerlink" title="1. Search"></a>1. Search</h5><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Algorithm Search(R, q)</span><br><span class="line"></span><br><span class="line">Input: GiST rooted at R, predicate q </span><br><span class="line"></span><br><span class="line">Output: all tuples that satisfy q </span><br><span class="line"></span><br><span class="line">Sketch: Recursively descend all paths in tree whose keys are consistent with q. </span><br><span class="line"></span><br><span class="line">S1: [Search subtrees] If R is not a leaf, check each entry E on R to determine whether Consistent(E, q). For all entries that are Consistent, invoke Search on the subtree whose root node is referenced by E.ptr.</span><br><span class="line"></span><br><span class="line">S2: [Search leaf node] If R is a leaf, check each entry E on R to determine whether Consistent(E, q). If E is Consistent, it is a qualifying entry. At this point E.ptr could be fetched to check q accurately, or this check could be left to the calling process.</span><br></pre></td></tr></table></figure>
+<p>​    ==注意==：查询谓词 $q$ 可以是精确匹配（相等）谓词，也可以是同时有多个值满足的谓词。后者包括 ”range“ 或 window“ 谓词，如在 B+tree 或 R-tree 中，还有不基于连续区域的谓词（例如集合中的包含谓词）</p>
+<h5 id="2-Search-In-Linearly-Ordered-Domains"><a href="#2-Search-In-Linearly-Ordered-Domains" class="headerlink" title="2. Search In Linearly Ordered Domains"></a>2. Search In Linearly Ordered Domains</h5><p>​    如果被索引的<strong>数据线性有序</strong>，且查询通常是相等或者范围这样的谓词，那么本小节中定义的 $FindMin$ 和 $Next$ 方法可以实现更高效地搜索。要使此选项可用，用户需要在创建搜索树的时候执行一些<strong>额外的步骤</strong>：</p>
+<ul>
+<li>$\mathbf{IsOrdered}$ 是在创建树的时候设置的一个静态属性，默认值是 false；需要设置为 true</li>
+<li>$\mathbf{Compare}(E_1,E_2)$ 需要被注册，给定两个索引项 $E_1=(p_1,\space ptr_1)$ 和 $E_2=(p_2,\space ptr_2)$，$\mathbf{Compare}$ 方法返回 $p_1$ 是否在 $p_2$ 之前，或者 $p_1$ 在 $p_2$ 之后，或者 $p_1$ 和 $p_2$ 相等。$\mathbf{Compare}$ 用于在每个节点内插入数据</li>
+<li>$\mathbf{PickSplit}$ 方法必须保证 $P$ 分裂为 $P_1$ 和 $P_2$ 节点后，对于任意 $P_1$ 上的索引项 $E_1$、$P_2$ 上的索引项 $E_2$，$\mathbf{Compare}(E_1,E_2)$ 返回 $E_1$ 在 $E_2$</li>
+<li>保证一个节点内没有两个重叠的 $key$，即一个节点内的任意 $E_1$ 和 $E_2$，$\mathbf{Consistent}(E_1,E_2.p)=false$</li>
+</ul>
+<p>​    如果执行了上面 $4$ 个步骤，则可以通过调用 $FindMin$ 并重复调用 $Next$ 来处理相等和范围查询。而其他类型的谓词仍然可以通过通用的搜索方法来处理，$FindMin/Next$ 比使用 $Serach$ 遍历更高效，因为 $FindMin$ 和 $Next$ 只沿着一个根到叶子的路径访问非叶子节点</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Algorithm FindMin(R, q) </span><br><span class="line"></span><br><span class="line">Input: GiST rooted at R, predicate q </span><br><span class="line"></span><br><span class="line">Output: minimum tuple in linear order that satisfies q </span><br><span class="line"></span><br><span class="line">Sketch: descend leftmost branch of tree whose keys are Consistent with q. When a leaf node is reached, return the first key that is Consistent with q. </span><br><span class="line"></span><br><span class="line">FM1: [Search subtrees] If R is not a leaf, find the first entry E in order such that Consistent(E, q) . If such an E can be found, invoke FindMin on the subtree whose root node is referenced by E :ptr. If no such entry is found, return NULL. </span><br><span class="line"></span><br><span class="line">FM2: [Search leaf node] If R is a leaf, find the first entry E on R such that Consistent(E, q), and return E. If no such entry exists, return NULL.</span><br></pre></td></tr></table></figure>
+<p>​    给定一个满足谓词 $q$ 的索引项 $E$，$Next$ 方法返回下一个满足 $q$ 的索引项，如果不存在则返回 $NULL$。如果是为了查找 $Next$ 只会在叶子节点上被调用</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Algorithm Next(R, q, E) </span><br><span class="line"></span><br><span class="line">Input: GiST rooted at R, predicate q, current entry E </span><br><span class="line"></span><br><span class="line">Output: next entry in linear order that satisfies q </span><br><span class="line"></span><br><span class="line">Sketch: return next entry on the same level of the tree if it satisfies q. Else return NULL. </span><br><span class="line"></span><br><span class="line">N1: [next on node] If E is not the rightmost entry on its node, and N is the next entry to the right of E in order, and Consistent(N, q), then return N. If :Consistent(N, q), return NULL. </span><br><span class="line"></span><br><span class="line">N2: [next on neighboring node] If E is the righmost entry on its node, let P be the next node to the right of R on the same level of the tree (this can be found via tree traversal, or via sideways pointers in the tree, when available [LY81].) If P is non-existent, return NULL. Otherwise, let N be the leftmost entry on P . If Consistent(N, q), then return N, else return NULL.</span><br></pre></td></tr></table></figure>
+<h5 id="3-Insert"><a href="#3-Insert" class="headerlink" title="3. Insert"></a>3. Insert</h5><p>​    插入流程保证 $Gist$ 的平衡，它与 R-tree 的插入非常相似，它是 B+tree 更简单的插入流程的泛化。插入允许指定插入 $level$，这允许后续方法使用 <strong>Insert</strong> 从树的内部节点重新插入数据。假设叶子节点是 $0$ 层，层号从叶子节点向上不断增加，新插入的项目出现在 $level=0$ 层</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Algorithm Insert(R, E, l) </span><br><span class="line"></span><br><span class="line">Input: GiST rooted at R, entry E = (p, ptr), and level l, where p is a predicate such that p holds for all tuples reachable from ptr. </span><br><span class="line"></span><br><span class="line">Output: new GiST resulting from insert of E at level l. </span><br><span class="line"></span><br><span class="line">Sketch: find where E should go, and add it there, splitting if necessary to make room. </span><br><span class="line"></span><br><span class="line">I1. [invoke ChooseSubtree to find where E should go] Let L = ChooseSubtree(R, E, l) </span><br><span class="line"></span><br><span class="line">I2. If there is room for E on L, install E on L (in order according to Compare, if IsOrdered.) Otherwise invoke Split(R, L, E). </span><br><span class="line"></span><br><span class="line">I3. [propagate changes upward] AdjustKeys(R, L).</span><br></pre></td></tr></table></figure>
+<p>​    <strong>ChooseSubtree</strong> 可用于在树的任何 $level$ 找到插入的最佳节点。当 <strong>IsOrdered</strong> 属性是 true 时，必须仔细编写 <strong>Penalty</strong> 方法以确保 <strong>ChooseSubtree</strong> 按顺序到达正确的叶子节点。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Algorithm ChooseSubtree(R, E, l) </span><br><span class="line"></span><br><span class="line">Input: subtree rooted at R, entry E = (p, ptr), level l </span><br><span class="line"></span><br><span class="line">Output: node at level l best suited to hold entry with characteristic predicate E.p </span><br><span class="line"></span><br><span class="line">Sketch: Recursively descend tree minimizing Penalty </span><br><span class="line"></span><br><span class="line">CS1. If R is at level l, return R; </span><br><span class="line"></span><br><span class="line">CS2. Else among all entries F = (q, ptr&#x27;) on R find the one such that Penalty(F, E) is minimal. Return ChooseSubtree(F.ptr&#x27;, E, l).</span><br></pre></td></tr></table></figure>
+<p>​    <strong>split</strong> 算法利用用户自定义的 <strong>PickSplit</strong> 方法来决定如何拆分节点，包括处理正在进行插入的新元组。一旦数据分成两份，<strong>Split</strong> 就会为其中一份生成新的节点，将其插入树中，并更新树中新节点之上的 $key$</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Algorithm Split(R, N, E) </span><br><span class="line"></span><br><span class="line">Input: GiST R with node N, and a new entry E = (p, ptr). </span><br><span class="line"></span><br><span class="line">Output: the GiST with N split in two and E inserted. </span><br><span class="line"></span><br><span class="line">Sketch: split keys of N along with E into two groups according to PickSplit. Put one group onto a new node, and Insert the new node into the parent of N. </span><br><span class="line"></span><br><span class="line">SP1: Invoke PickSplit on the union of the elements of N and fEg, put one of the two partitions on node N, and put the remaining partition on a new node N0 . </span><br><span class="line"></span><br><span class="line">SP2: [Insert entry for N0 in parent] Let EN&#x27; = (q, ptr&#x27;), where q is the Union of all entries on N&#x27;, and ptr&#x27; is a pointer to N&#x27;. If there is room for EN&#x27; on Parent(N), install EN&#x27; on Parent(N) (in order if IsOrdered.) Otherwise invoke Split(R, Parent(N), EN&#x27;).</span><br><span class="line"></span><br><span class="line">SP3: Modify the entry F which points to N, so that F.p is the Union of all entries on N.</span><br></pre></td></tr></table></figure>
+<p>​    步骤 SP3 修改父节点信息，以显示节点 $N$ 的修改。 这些修改通过插入流程中的步骤 I3 向上传播到树中的其他部分，同时传播了由于插入 $N’$ 引起的树结构的变化。</p>
+<p>​    <strong>AdjustKeys</strong> 方法确保一组谓词之上的 key 适用于下面的所有元组</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Algorithm AdjustKeys(R, N) </span><br><span class="line"></span><br><span class="line">Input: GiST rooted at R, tree node N </span><br><span class="line"></span><br><span class="line">Output: the GiST with ancestors of N containing correct and specific keys </span><br><span class="line"></span><br><span class="line">Sketch: ascend parents from N in the tree, making the predicates be accurate characterizations of the subtrees. Stop after root, or when a predicate is found that is already accurate.</span><br><span class="line"></span><br><span class="line">PR1: If N is the root, or the entry which points to N has an already-accurate representation of the Union of the entries on N, then return. </span><br><span class="line"></span><br><span class="line">PR2: Otherwise, modify the entry E which points to N so that E.p is the Union of all entries on N. Then AdjustKeys(R, Parent(N).)</span><br></pre></td></tr></table></figure>
+<p>​    ==注意==：当 $\mathbf{IsOrdered}=true$ 时，<strong>AdjustKeys</strong> 通常不执行任何工作，因为这种情况下，节点上的谓词通常将数据分为几个范围，不需因为简单的插入或者删除而进行修改，<strong>AdjustKeys</strong> 会在步骤 PR1 中检测到这种情况，从而避免在树中的更高的 $level$ 调用 <strong>AdjustKeys</strong>，这种情况下，如果有需要可以完全绕过 <strong>AdjustKeys</strong>、</p>
+<h5 id="4-Delete"><a href="#4-Delete" class="headerlink" title="4. Delete"></a>4. Delete</h5><p>​    删除算法保持树的平衡，同时尽可能保持树中 $key$ 的信息。当树中的 $key$ 存在线性顺序时，使用 B+tree 风格的 ”$borrow\space or\space coalesc$“ 技术。否则，使用 R-tree 风格的重新插入技术。篇幅原因，文中省略删除算法</p>
+<h3 id="4-The-Gist-for-Three-Applications"><a href="#4-The-Gist-for-Three-Applications" class="headerlink" title="4. The Gist for Three Applications"></a>4. The Gist for Three Applications</h3><p>这一章的内容是给出了三个基于 $Gist$ 实现的具体的索引类型，包括 B+tree、R-tree 和 RD-tree，其中主要描述了实现这几种索引类型时，$Gist$ 定义的需要用户实现的接口是如何实现的。</p>
+<h4 id="4-1-GiSTs-Over-mathbb-Z-B-trees"><a href="#4-1-GiSTs-Over-mathbb-Z-B-trees" class="headerlink" title="4.1 GiSTs Over $\mathbb{Z}$ (B+trees)"></a>4.1 GiSTs Over $\mathbb{Z}$ (B+trees)</h4><h4 id="4-2-GiSTs-Over-Polygons-in-mathbb-R-R-trees"><a href="#4-2-GiSTs-Over-Polygons-in-mathbb-R-R-trees" class="headerlink" title="4.2 GiSTs Over Polygons in $\mathbb{R}$ (R-trees)"></a>4.2 GiSTs Over Polygons in $\mathbb{R}$ (R-trees)</h4><h4 id="4-3-GiSTs-Over-mathcal-P-mathbb-Z-RD-trees"><a href="#4-3-GiSTs-Over-mathcal-P-mathbb-Z-RD-trees" class="headerlink" title="4.3 GiSTs Over $\mathcal{P}(\mathbb{Z})$ (RD-trees)"></a>4.3 GiSTs Over $\mathcal{P}(\mathbb{Z})$ (RD-trees)</h4><h3 id="5-Gist-Performance-Issues"><a href="#5-Gist-Performance-Issues" class="headerlink" title="5. Gist Performance Issues"></a>5. Gist Performance Issues</h3><h4 id="1-无重叠-key"><a href="#1-无重叠-key" class="headerlink" title="1. 无重叠 $key$"></a>1. 无重叠 $key$</h4><ul>
+<li>对于没有重叠 $key$ 的平衡树（如 B+tree）需要检查的最大节点数（I/O 次数）很容易检验：对于<u>无重叠数据</u>的 $point\space query$，查询次数是<u>树的高度</u>。对于一个 $n$ 个元组的数据库而言是 $O(log\space n)$，这个上限不能保证。</li>
+<li>但是，对于有重叠 $key$ 的树而言，相同的数据可能出现在不同的节点上，这会导致对树中的多条路径进行查询。Gist 的性能随着节点上出现重叠 $key$ 的情况而变化。</li>
+</ul>
+<h4 id="2-有重叠-key"><a href="#2-有重叠-key" class="headerlink" title="2. 有重叠 $key$"></a>2. 有重叠 $key$</h4><h5 id="1、主要原因"><a href="#1、主要原因" class="headerlink" title="1、主要原因"></a>1、主要原因</h5><ul>
+<li><h5 id="数据重叠和-key-压缩带来的信息损失"><a href="#数据重叠和-key-压缩带来的信息损失" class="headerlink" title="数据重叠和 $key$ 压缩带来的信息损失"></a><strong>数据重叠</strong>和 $key$ 压缩带来的<strong>信息损失</strong></h5><ul>
+<li><p>数据重叠：如果树中的数据出现重叠，那么 $key$ 很可能也出现重叠。例如数据集中的数据完全相同，这种情况下会生成低效的索引，利用顺序扫描可能更合适</p>
+</li>
+<li><p>压缩带来的信息损失：即使两个原始数据可能不重叠，但如果 $Compress/Decompress$ 方法不能产生精确的 $key$，那么可能导致数据重叠。例如 R-tree，$Compress$ 方法生成外接矩形，如果源数据不是矩形的，那么可能导致数据有损</p>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="2、性能的影响"><a href="#2、性能的影响" class="headerlink" title="2、性能的影响"></a>2、性能的影响</h5><p>​    上述两个因素对性能的影响如下图所示，初始时没有数据重叠或者压缩导致精度丢失的问题，此时<u>具有最佳的性能</u>。随着数据重叠的增加或压缩导致的精度问题出现，性能开始下降。最坏情况下任意的查询语句都会命中所有的 $key$，这种情况下<u>需要遍历整棵树</u></p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Compression Loss.png" alt="Compression Loss" style="zoom:70%;">
+
+<h5 id="3、模型验证"><a href="#3、模型验证" class="headerlink" title="3、模型验证"></a>3、模型验证</h5><p>​    选择 RD-trees 来验证性能（I/O 次数）在上图参数空间中的变化：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/performance in the parameter space.png" alt="performance in the parameter space" style="zoom:70%;">
+
+<h3 id="6-Implementation-Issues"><a href="#6-Implementation-Issues" class="headerlink" title="6. Implementation Issues"></a>6. Implementation Issues</h3><p>总结实现 $Gist$ 需要考虑的问题：</p>
+<ul>
+<li><p><strong>In-memory Efficiency</strong>：上一小节讨论了 $Gist$ 如何提升磁盘访问方面的效率，为简化内存管理方面的开销，将 $node$ 对象的实现开放为可扩展的。例如，可以重载线性排序的 $Gist$ 的 $node$ 实现，以支持二分查找；可以重载支持 hB-tree 的 $node$ 实现，以支持 hB-tree 所需的专用内部结构</p>
+</li>
+<li><p><strong>Concurrencu-control, Recovery and Consistency</strong>：高并发、可恢复性、一致性是数据库的关键</p>
+</li>
+<li><p><strong>Variable-Length Keys</strong>：通常允许变长 $key$ 是一个非常有用的特性，特别是 $Gist$ 中允许使用压缩算法。但是这需要在实现树操作方法时尤其小心，例如 <strong>Insert</strong> 和 <strong>Split</strong></p>
+</li>
+<li><p><strong>Bulk Loading</strong>：在无序的数据上，如何在一个大的已经存在的数据集上有效构建索引，当前仍不清晰。应该为 $Gist$ 扩展 <strong>Bulk Load</strong> 方法，来实现不同类型的数据集的批量加载</p>
+</li>
+<li><p><strong>Optimizer Integration</strong>：要将 $Gist$ 和查询优化器集成，必须让优化器知道哪些查询谓词与哪些 $Gist$ 是匹配的。而估算 $Gist$ 的代价更困难，需要进一步研究</p>
+</li>
+<li><p><strong>Coding Detail</strong>：两种建议实现 $Gist$ 的方式：</p>
+<ul>
+<li>$Extensible\space GiST$：像 $POSTGRES$ 或者 $Illustra$ 一样，在运行时可扩展，这样可以非常<strong>方便</strong>使用；</li>
+<li>$Template\space GiST$：像 $SHORE$ 一样，在编译时可扩展，这样可以<strong>更高效</strong>。</li>
+</ul>
+<p>以上两种方式基于相同的代码库构建，不需要复制逻辑</p>
+</li>
+</ul>
+<h3 id="7-Summary-and-Future-Work"><a href="#7-Summary-and-Future-Work" class="headerlink" title="7. Summary and Future Work"></a>7. Summary and Future Work</h3><ul>
+<li><p>Gist 对搜索树进行了抽象，提取了它们的一些共同特征，对各种搜索树进行了结构上的<strong>统一</strong></p>
+</li>
+<li><p>Gist 具有非常好的<strong>扩展性</strong>，允许对任意的数据集进行索引和查询，这引出了何时以何种方式生成搜索树的问题</p>
+</li>
+<li><p>Gist 的可扩展性引发的研究问题：</p>
+<ul>
+<li><u>可索引性</u>（$Indexability$）：$Gist$ 虽然提供了一种为任意类型建立索引的方法，但是对于 ”可索引性“ 还<strong>缺乏理论</strong>来描述：对于一个给定的数据集，针对给定的查询是否能够使用索引</li>
+<li><u>索引非标准数据</u>（$Indexing Non-Standard Domains$）：实际上，对一些<strong>非标准数据</strong>，例如集合、图形、序列、图片、音频、视频等，探索这些数据类型，会对理论探索提供一些有趣的反馈。对集合数据的 RD-tree 的研究已经开始：已经在 $SHORE$ 和 $Illustra$ 中实现了 RD-tree，只是用的时 R-tree 而不是 $Gist$。一旦从 R-tree 转到 $Gist$ 上，也可以通过实现新的 $PickSplit$ 方法和新的谓词实现这一点</li>
+<li><u>查询优化和代价评估</u>（$Query\space Optimization\space and\space Cost\space Estimation$）：需要考虑搜索 $Gist$ 的代价，当前代价评估对 B+ tree 而言时准确且合理的，对 R-tree 而言可能相对差一些。R-tree 上的代价评估已经有一些工作已经完成，但是对更通用的 Gist 而言还有很多工作要做。另外，需要由用户实现的接口可能是非常耗时的操作，这些方法的 CPU cost 要注册给优化器。然后优化器在做代价评估时，将这些 CPU cost 正确地纳入计算中</li>
+<li><u>有损 $key$ 压缩技术</u>（$Lossy\space Key\space Compression\space Technique$）：随着新的数据类型被索引，可能有必要找到新的有损压缩算法，来保留 Gist 的属性</li>
+<li>算法提升（$Algorithmic\space Improvement$）：$Gist$ 的插入算法基于 R-tree 的插入算法。R-tree 使用了某种修改过的算法，对于空间数据似乎有一些性能的提升。特别是，R-tree 在分裂期间 ”强制重新插入“ 能获得很好的收益。如果这些技术证明是有益的，它们会被纳入到 Gist 中，作为可选项或者默认选项。要统一 R-tree 和 R-tree 中的并发控制和恢复方面的内容修改还需要一些工作</li>
+</ul>
+</li>
+</ul>
+<h2 id="3、Gist-索引性能分析报告"><a href="#3、Gist-索引性能分析报告" class="headerlink" title="3、Gist 索引性能分析报告"></a>3、Gist 索引性能分析报告</h2><h3 id="一、性能指标"><a href="#一、性能指标" class="headerlink" title="一、性能指标"></a>一、性能指标</h3><h4 id="1-SQL-处理过程"><a href="#1-SQL-处理过程" class="headerlink" title="1. SQL 处理过程"></a>1. SQL 处理过程</h4><ul>
+<li>查询编译<ul>
+<li>查询分析：由 SQL 查询语句生成<strong>查询树</strong></li>
+<li>查询重写：对查询树<strong>重写</strong>并生成新的查询树，以提供对规则和视图的支持</li>
+<li>查询优化<ul>
+<li>生成路径：由查询树计算最优路径</li>
+<li><strong>生成计划</strong>：根据最优路径，生成执行计划和执行树。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>查询执行<ul>
+<li>执行计划：执行执行树的每个 node，最终返回结果给用户 terminal</li>
+<li>调度：将请求分配到合适的处理模块</li>
+<li>附件命令处理：处理建表、备份等命令</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-计划树分析"><a href="#2-计划树分析" class="headerlink" title="2. 计划树分析"></a>2. 计划树分析</h4><h5 id="2-1-EXPLAIN-工具"><a href="#2-1-EXPLAIN-工具" class="headerlink" title="2.1 EXPLAIN 工具"></a>2.1 EXPLAIN 工具</h5><p>​    <strong>EXPLAIN</strong> 命令：可以查看规划器生成的查询计划。查询计划的结构是一个<strong>计划结点</strong>的树，EXPLAIN 给计划树中每个结点都输出一行，显示基本的结点类型和计划器为该计划结点的执行所做的<strong>开销估计</strong>。第一行（最上层的结点）是对该计划的总执行开销的估计，一个上层结点的开销包括它的所有子结点的开销。</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/explain 分析执行计划.png" alt="explain 分析执行计划" style="zoom: 67%;">
+
+<ul>
+<li><p><strong>ANALYZE</strong>，执行命令并且显示实际的<strong>运行时间</strong>和其他统计信息，这个参数默认被设置为 FALSE</p>
+</li>
+<li><p>VERBOSE，显示关于计划的<strong>额外信息</strong>。特别是：计划树中每个结点的输出列列表、模式限定的表和函数名、总是把表达式中的变量标上它们的范围表别名，以及总是打印统计信息被显示的每个触发器的名称，这个参数默认被设置为 FALSE</p>
+</li>
+<li><p>COSTS，包括每一个计划结点的<strong>估计启动</strong>和<strong>总代价</strong>，以及估计的行数和每行的宽度，这个参数默认被设置为 TRUE</p>
+</li>
+<li><p>BUFFERS，显示关于<strong>缓冲区</strong>（共享块、本地块、临时块读和写的块数）使用的信息，可用于识别查询的哪些部分是 I/O 密集程度最高的。该参数默认被设置为 FALSE 且只能和 ANALYZE 参数一起使用，</p>
+</li>
+<li><p>TIMING，在输出中包括<strong>实际启动时间</strong>以及在<strong>每个结点中花掉的时间</strong>。只有当 ANALYZE 也被启用时，这个参数才能使用，它的默认被设置为 TRUE</p>
+</li>
+<li><p>FORMAT，指定输出格式，可以是 TEXT、XML、JSON 或者 YAML。非文本输出包含和文本输出格式相同的信息，但是更容易被程序解析，这个参数默认被设置为 TEXT</p>
+</li>
+</ul>
+<h5 id="2-2-EXPLAIN-结果说明"><a href="#2-2-EXPLAIN-结果说明" class="headerlink" title="2.2 EXPLAIN 结果说明"></a>2.2 EXPLAIN 结果说明</h5><h5 id="1-执行类型"><a href="#1-执行类型" class="headerlink" title="1. 执行类型"></a>1. 执行类型</h5><ul>
+<li>全表扫描|顺序扫描 (Seq Scan)：将表的所有数据块从头到尾读一遍，然后从数据块中找到符号条件的数据块</li>
+<li><strong>索引扫描</strong> (Index Scan)：在索引中找到数据行的物理位置，然后再到表的数据块中把相应的数据读出来</li>
+<li>位图扫描 (Bitmap Index Scan $\rightarrow$ Bitmap Heap Scan)：索引的一种方式，把满足条件的行或块在内存中建一个位图，扫描完索引后，再根据位图到表的数据文件把数据读取出来</li>
+<li>条件过滤 (Filter)：一般时在 WHERE 上过滤条件</li>
+<li>嵌套循环 (Nestloop Join)：内表被外表驱动，外表返回的每一行数据都要在内表中检索到匹配的行。注意：外表（驱动表）选择小的表，内表（被驱动表）的连接字段要有索引，否则性能会很慢</li>
+<li>Hash 连接 (Hash Join)：优化器用 $2$ 个表中较小的表，并利用连接键在内存中建立散列表，然后扫描较大的表并探测散列表，找出与散列表匹配的行</li>
+<li>合并连接 (Merge Join)：如果源数据上有索引或结果已经排好序，在执行排序合并连接时不需要排序，此时合并连接的性能优于 Hash Join</li>
+</ul>
+<h5 id="2-cost-值"><a href="#2-cost-值" class="headerlink" title="2. cost 值"></a>2. cost 值</h5><ul>
+<li>顺序扫描一个数据块，cost值定为 $1$</li>
+<li>随机扫描一个数据块，cost值定为 $4$</li>
+<li>处理一个数据行的 CPU，cost值为 $0.01$</li>
+<li>处理一个索引行的 CPU，cost值为 $0.005$</li>
+<li>每个操作符的 CPU，cost值为 $0.0025$</li>
+</ul>
+<h5 id="3-Buffers"><a href="#3-Buffers" class="headerlink" title="3. Buffers"></a>3. Buffers</h5><ul>
+<li>shared read=1，代表数据来自磁盘而并非缓存</li>
+<li>shared hit=1，说明数据已经在cache中</li>
+</ul>
+<h5 id="4-Time"><a href="#4-Time" class="headerlink" title="4. Time"></a>4. Time</h5><ul>
+<li>Planning Time，生成执行计划的时间</li>
+<li>Execution Time，执行计划的时间</li>
+</ul>
+<h5 id="5-其他信息"><a href="#5-其他信息" class="headerlink" title="5. 其他信息"></a>5. 其他信息</h5><ul>
+<li>rows，表示返回多少行</li>
+<li>width，表示每行平均宽度</li>
+<li>actual time，实际花费的时间</li>
+<li>loops=1，循环的次数</li>
+<li>Output，输出的字段名</li>
+</ul>
+<h5 id="2-3-规划器的统计数据"><a href="#2-3-规划器的统计数据" class="headerlink" title="2.3 规划器的统计数据"></a>2.3 规划器的统计数据</h5><p>​    统计信息：每个表和索引中的<strong>记录总数</strong>以及每个表和索引<strong>占据的磁盘块数</strong>，这两个信息被保存在 pg_class 的 reltuples 和 relpages 字段中，可以使用如下语句检索这些信息。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> relname,relkind,reltuples,relpages <span class="keyword">from</span> pg_class;</span><br></pre></td></tr></table></figure>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/统计数据.png" alt="统计数据" style="zoom:67%;">
+
+<p>​    ==注意==：出于效率考虑，reltuples 和 relpages <strong>不是实时更新</strong>的， 因此它们通常包含可能有些过时的数值。 它们被 VACUUM、ANALYZE和几个 DDL 命令更新，比如 CREATE INDEX。一个独立的 ANALYZE（没有和 VACUUM 在一起的） 生成一个 reltuples 的近似数值， 因为它并没有读取表里的每一行。规划器将把 pg_class 表里面的数值调整为和当前的物理表尺寸匹配，以此获取一个更接近的近似值。</p>
+<h4 id="3-性能分析方法"><a href="#3-性能分析方法" class="headerlink" title="3. 性能分析方法"></a>3. 性能分析方法</h4><ul>
+<li><p>首先，我们分析了一条 SQL 语句是如何工作的， 发现影响查询性能的关键是生成路径和生成计划两个模块</p>
+</li>
+<li><p>然后，我们查看 SQL 语句的执行计划并重点关注规划器如何使用统计信息</p>
+</li>
+<li><p>最后，从两个方面对 Gist 索引进行性能分析</p>
+<ul>
+<li>索引有效性：我们通过 EXPLAIN 命令获取 SQL 语句相关的统计信息，对比使用索引前后的执行时间来比较索引的有效性</li>
+<li>索引使用情况：查看索引使用的统计情况的表：pg_stat_user_indexes；使用命令：select * from pg_stat_all_indexes where relname = ‘t_btree’进行查看</li>
+</ul>
+</li>
+</ul>
+<h3 id="二、PostgreSQL-索引"><a href="#二、PostgreSQL-索引" class="headerlink" title="二、PostgreSQL 索引"></a>二、PostgreSQL 索引</h3><ul>
+<li>PG 中提供的 $10$ 种索引：</li>
+</ul>
+<ol>
+<li><strong>B-tree</strong> 索引：适合所有的数据类型，支持可以排成某些顺序的数据的<u>等式</u>和<u>范围查询</u></li>
+<li>Hash 索引：<strong>只能</strong>处理简单的<u>等式</u>比较</li>
+<li>GIN 索引：用于包含多个组件值的数据值（如数组）的 “<strong>反向索引</strong>“</li>
+<li>Gist 索引：它是一种平衡树结构的访问方法，是可以实现许多不同索引方案的基本<strong>模板</strong></li>
+<li>SP-Gist 索引：类似 Gist，是一个通用的索引接口，但是 SP-Gist 使用了<strong>空间分区</strong>的方法，使得 SP-Gist 可以更好的支持非平衡数据结构，例如：quad-trees、k-d tree、radis tree</li>
+<li>BRIN 索引：是<strong>块级索引</strong>，有别于 B-tree 等索引，BRIN 记录并不是以行号为单位记录索引明细，而是记录每个数据块或者每段连续的数据块的统计信息。因此BRIN索引空间占用特别的小，对数据写入、更新、删除的影响也很小</li>
+<li>RUM 索引：是一个索引插件，由 Postgrespro 开源，适合全文检索，属于 <strong>GIN 的增强版本</strong></li>
+<li>Bloom 索引：是 PostgreSQL 基于 bloom filter 构造的一个索引接口，属于 lossy 索引，可以收敛结果集（排除绝对不满足条件的结果，剩余的结果里再挑选满足条件的结果），因此需要二次 check，bloom 支持任意列组合的等值查询</li>
+<li>ZomboDB 索引：是 PostgreSQL 与 ElasticSearch 结合的一个索引接口，可以直接读写 ES，实现数据的透明搜索</li>
+<li>BitMap 索引：是 Greenplum 的索引接口，类似 GIN 倒排，只是 BitMap 的 key 是列的值，value 是 BIT（每个BIT对应一行），而不是行号 list 或 tree</li>
+</ol>
+<blockquote>
+<p>默认情况下，CREATE INDEX 命令创建的是 B-tree 索引</p>
+</blockquote>
+<h4 id="1-B-tree-索引"><a href="#1-B-tree-索引" class="headerlink" title="1. B-tree 索引"></a>1. B-tree 索引</h4><ul>
+<li>应用场景：适合所有的数据类型，支持排序，支持大于、小于、等于、大于或等于、小于或等于的搜索</li>
+<li>运行 demo 测试 B-tree 索引对性能的提升：</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/b-tree 索引示例.png" alt="b-tree 索引示例" style="zoom: 70%;">
+
+<ul>
+<li><p>==问题==：我们在这里创建的索引类型是 B-tree，并不支持位图索引。而上图的执行计划中可以看到有个 “Bitmap Heap Scan”，为什么实际执行的却是基于位图索引的扫描？</p>
+<ul>
+<li><p>PostgreSQL 开发者核心团队的成员 Tom Lane 给出的解释：</p>
+<p>A plain indexscan fetches one tuple-pointer at a time from the index,  and immediately visits that tuple in the table.  A bitmap scan fetches  all the tuple-pointers from the index in one go, sorts them using an  in-memory “bitmap” data structure, and then visits the table tuples in  physical tuple-location order</p>
+<p>翻译：普通的索引扫描一次读一条索引项，而 BitMap Heap Scan 一次性将满足条件的索引项全部取出，并在内存中进行排序, 然后根据取出的索引项访问表数据。由于 BitMap Heap Scan 会输出整个数据块的数据，因此需要 recheck，对输出的索引项进行过滤</p>
+</li>
+<li><p>其他解释：如果数据相关性较低，规划器认为，如果它执行普通的索引扫描，它将跳过整个表（物化视图）以获取所指示的行，从而导致大量随机 IO，这比顺序 IO 慢得多。通过执行位图扫描，它改进了这一点，因为位图本身就将索引中的行 “排序” 成它在表中找到它们的顺序，从而使表的读取更加顺序化。但位图扫描也并不总是有效。</p>
+</li>
+<li><p>我们的理解：在读取数据量比较小时，index scan 比较合适；在读取数据量比较大的情况下，bitmap index scan 会更有优势，可减少随机读取，提升 I/O 效率</p>
+</li>
+</ul>
+</li>
+<li><p>解决：由于我们后面要对比不同索引的性能，因此不希望系统自动优化使用位图索引扫描，通过 <u>set enable_bitmapscan = off</u>  禁用该优化器开关，从而来确保进行的是索引扫描</p>
+</li>
+<li><p>执行 B-tree 索引扫描的查询计划：</p>
+</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/b-tree 索引示例（禁用位图扫描）.png" alt="b-tree 索引示例（禁用位图扫描）" style="zoom:70%;">
+
+<h4 id="2-Gist-索引"><a href="#2-Gist-索引" class="headerlink" title="2. Gist 索引"></a>2. Gist 索引</h4><p>应用场景：是一个通用的索引接口，可以使用 Gist 实现 B-tree、R-tree 等索引结构。不同的类型，支持的索引检索也各不一样：</p>
+<ol>
+<li>几何类型，支持位置搜索（包含、相交、在上下左右等），按距离排序</li>
+<li>范围类型，支持位置搜索（包含、相交、在左右等）</li>
+<li>IP类型，支持位置搜索（包含、相交、在左右等）</li>
+<li>空间类型（PostGIS），支持位置搜索（包含、相交、在上下左右等），按距离排序</li>
+<li>标量类型，支持按距离排序</li>
+</ol>
+<h5 id="2-1-几何类型检索（R-tree）"><a href="#2-1-几何类型检索（R-tree）" class="headerlink" title="2.1 几何类型检索（R-tree）"></a>2.1 几何类型检索（R-tree）</h5><img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/gist(r-tree) 索引示例.png" alt="gist(r-tree) 索引示例" style="zoom:70%;">
+
+<h5 id="2-2-标量类型排序（B-tree）"><a href="#2-2-标量类型排序（B-tree）" class="headerlink" title="2.2 标量类型排序（B-tree）"></a>2.2 标量类型排序（B-tree）</h5><ul>
+<li><p>扩展 Gist 功能：因为 Gist 可以实现 B-tree 的索引结构，所以也可以在例如数字这种标量类型上使用 Gist 索引（虽然一般都不如B-tree索引效果好），这里需要使用 <strong>btree_gist 索引插件</strong>，它对 B-tree 固有的操作符增加了 Gist 功能</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/btree_gist 索引插件对比.png" alt="btree_gist 索引插件对比" style="zoom:70%;">
+</li>
+<li><p>性能分析</p>
+<ul>
+<li><p>添加 Gist 索引前后性能对比</p>
+<ul>
+<li>使用索引前：</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/标量类型排序 使用Gist索引前.png" alt="标量类型排序 使用Gist索引前" style="zoom: 60%;">
+
+<ul>
+<li>使用索引后：</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/标量类型排序 使用Gist索引后.png" alt="标量类型排序 使用Gist索引后" style="zoom:60%;">
+</li>
+<li><p>Gist 索引和 B-tree 索引对比</p>
+<ul>
+<li><strong>性能对比</strong></li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree 索引和 Gist 索引性能对比.png" alt="B-tree 索引和 Gist 索引性能对比" style="zoom:67%;">
+
+<ul>
+<li><p><strong>占用空间对比</strong></p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree 索引和 Gist 占用空间对比.png" alt="B-tree 索引和 Gist 占用空间对比" style="zoom:67%;">
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>总结 Gist 和 B-tree 索引比较的优缺点：</p>
+<ul>
+<li>优点：和 B-tree 索引类似，同样适用于其他的数据类型。和 B-tree 索引相比，Gist 多字段索引在查询条件中包含索引字段的任何子集都会使用索引扫描，而 B-tree 索引只有查询条件包含第一个索引字段才会使用索引扫描</li>
+<li>缺点：Gist 索引性能上略差于 B-tree，且创建耗时较长，占用空间也比较大</li>
+</ul>
+</li>
+</ul>
+<h5 id="2-3-全文检索（RD-tree）"><a href="#2-3-全文检索（RD-tree）" class="headerlink" title="2.3 全文检索（RD-tree）"></a>2.3 全文检索（RD-tree）</h5><ul>
+<li><p>全文检索：通过自然语言文档的集合来找到那些匹配一个查询的检索</p>
+</li>
+<li><p>PostgreSQL 提供了两种数据类型用于支持全文检索：</p>
+<ul>
+<li><p>tsvector：是一个无重复值的 lexemes 排序列表，即一些同一个词的不同变种的标准化</p>
+</li>
+<li><p>tsquery：存储用于检索的词汇，并且使用布尔操作符 &amp;(AND)，|(OR) 和 !(NOT) 来组合它们，括号用来强调操作符的分组</p>
+</li>
+<li><p>示意图：</p>
+</li>
+</ul>
+</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/PG中全文检索的简要介绍.png" alt="PG中全文检索的简要介绍" style="zoom: 70%;">
+
+<ul>
+<li>添加 Gist（RD-tree） 索引前后性能对比</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/gist(RD-tree) 索引示例.png" alt="gist(RD-tree) 索引示例" style="zoom:70%;">
+
+<h3 id="三、Gist-性能对比实验"><a href="#三、Gist-性能对比实验" class="headerlink" title="三、Gist 性能对比实验"></a>三、Gist 性能对比实验</h3><blockquote>
+<p>上一小节主要关注：PG 中 B-trees 索引和 Gist 索引的测试，以及添加索引后性能的提升</p>
+<p>本小节主要进行：<strong>Gist，B-trees，R-trees，RD-trees</strong> 之间的性能比较分析</p>
+</blockquote>
+<h4 id="1-实验设置"><a href="#1-实验设置" class="headerlink" title="1. 实验设置"></a>1. 实验设置</h4><h5 id="1-1-数据集准备"><a href="#1-1-数据集准备" class="headerlink" title="1.1 数据集准备"></a>1.1 数据集准备</h5><p>​    我们的实验共分为三个部分：分别是对 Gist 实现的 B-tree、R-tree 以及 RD-tree 三种索引的性能对比分析。</p>
+<p>​    为了让实验结果更加可靠，我们分别为 B-tree、R-tree 索引各准备了 $4$ 个数据表，数据量分别为一百万条、两百万条、五百万条和一千万条；RD-tree 为 $3$ 个数据表，数据量分别为一百万条、两百万条、五百万条，用以观察不同数据量下各索引的性能变化以及性能瓶颈。各数据表的详细参数如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">索引类型</th>
+<th align="center">数据量</th>
+<th align="center">数据类型</th>
+<th align="center">查询项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">B-tree</td>
+<td align="center">1M，2M，5M，10M</td>
+<td align="center">id : <strong>integer</strong>，name : <strong>text</strong></td>
+<td align="center">id</td>
+</tr>
+<tr>
+<td align="center">R-tree</td>
+<td align="center">1M，2M，5M，10M</td>
+<td align="center">id : <strong>integer</strong>，p : <strong>point</strong></td>
+<td align="center">p</td>
+</tr>
+<tr>
+<td align="center">RD-tree</td>
+<td align="center">1M，2M，5M</td>
+<td align="center">id : <strong>integer</strong>，words : <strong>text</strong>，words_tsv : <strong>tsvector</strong></td>
+<td align="center">words_tsv</td>
+</tr>
+</tbody></table>
+<p>​    数据构造方面，对于 B-tree 和 R-tree 索引的数据表，我们采用 PostgreSQL 自带的数据生成函数 generate_series 进行快速数据生成。以生成一百万条数据的数据表为例，我们使用的生成语句具体如下：</p>
+<ul>
+<li>B-tree 数据生成语句</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> btree1m(id <span class="type">integer</span>, name text);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> btree1m(id, name)</span><br><span class="line"><span class="keyword">select</span> s.id, <span class="built_in">substring</span>(md5(random()::<span class="type">varchar</span>), <span class="number">2</span>, <span class="number">8</span>)</span><br><span class="line"><span class="keyword">from</span> generate_series (<span class="number">1</span>, <span class="number">1000000</span>) <span class="keyword">as</span> s(id)</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> random();</span><br></pre></td></tr></table></figure>
+<ul>
+<li>R-tree 数据生成语句</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> rtree1m(id <span class="type">integer</span>, p point);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> rtree1m(id, point)</span><br><span class="line"><span class="keyword">select</span> s.id, point(<span class="built_in">ceil</span>(random()<span class="operator">*</span><span class="number">10000</span>), <span class="built_in">ceil</span>(random()<span class="operator">*</span><span class="number">10000</span>))</span><br><span class="line"><span class="keyword">from</span> generate_series (<span class="number">1</span>, <span class="number">1000000</span>) <span class="keyword">as</span> s(id);</span><br></pre></td></tr></table></figure>
+<p>​    对于 RD-tree，由于其数据类型（文档）要求比较特殊，仅使用 generate_series 无法满足要求，因此我们使用 python 中的 psycopg2库，先从含有 $1087$ 个单词的文档中随机抽取单词组成字符串，再插入数据表中，待数据插入完成后，统一使用 to_tsvector 语句生成词素，以完成数据构造，具体生成代码如下：</p>
+<ul>
+<li>RD-tree 数据生成语句</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_rdtree_data</span>(<span class="params">filename</span>):</span></span><br><span class="line">    file = <span class="built_in">open</span>(filename,<span class="string">&quot;r&quot;</span>,encoding=<span class="string">&quot;utf_8&quot;</span>)</span><br><span class="line">    raw_data = file.read()</span><br><span class="line">    file.close()</span><br><span class="line">    word_sets = raw_data.split(<span class="string">&quot; &quot;</span>,<span class="number">1085</span>)</span><br><span class="line">    n = <span class="built_in">len</span>(word_sets)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    conn = psycopg2.connect(<span class="string">&quot;dbname=gist_pj user=postgres password=123456&quot;</span>)</span><br><span class="line">    cur = conn.cursor()</span><br><span class="line"></span><br><span class="line">    tables = [<span class="string">&#x27;rdtree1m&#x27;</span>,<span class="string">&#x27;rdtree2m&#x27;</span>,<span class="string">&#x27;rdtree5m&#x27;</span>,<span class="string">&#x27;rdtree10m&#x27;</span>]</span><br><span class="line">    data_nums = [<span class="number">1000000</span>, <span class="number">2000000</span>, <span class="number">5000000</span>, <span class="number">10000000</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i, table <span class="keyword">in</span> <span class="built_in">enumerate</span>(tables):</span><br><span class="line">        print(<span class="string">&quot;Creating %s...&quot;</span>%(table))</span><br><span class="line">        cur.execute(<span class="string">&#x27;create table &#x27;</span> + table + <span class="string">&#x27;(id integer, words text);&#x27;</span>)</span><br><span class="line">        conn.commit()</span><br><span class="line">        print(<span class="string">&quot;%s created. Start inserting...&quot;</span>%(table))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(data_nums[i]):</span><br><span class="line">            word_num = random.randint(<span class="number">1</span>, <span class="number">20</span>)</span><br><span class="line">            words = []</span><br><span class="line">            <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(word_num):</span><br><span class="line">                idnum = random.randint(<span class="number">1</span>, n - <span class="number">1</span>)</span><br><span class="line">                words.append(word_sets[idnum])</span><br><span class="line">            words = <span class="string">&#x27; &#x27;</span>.join(words)</span><br><span class="line"></span><br><span class="line">            cur.execute(<span class="string">&#x27;insert into &#x27;</span> + table + <span class="string">&#x27;(id, words) values(&#x27;</span> + <span class="built_in">str</span>(j) + <span class="string">&#x27;, \&#x27;&#x27;</span> + words + <span class="string">&#x27;\&#x27;);&#x27;</span>)</span><br><span class="line">            conn.commit()</span><br><span class="line">            <span class="keyword">if</span> (j+<span class="number">1</span>) %<span class="number">100000</span> == <span class="number">0</span>:</span><br><span class="line">                print(<span class="string">&quot;Inserted %d words into %s&quot;</span>%(j+<span class="number">1</span>,table))</span><br><span class="line">        print(<span class="string">&quot;%s insert completed&quot;</span>%(table))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">to_tsvector</span>():</span></span><br><span class="line">    conn = psycopg2.connect(<span class="string">&quot;dbname=gist_pj user=postgres password=123456&quot;</span>)</span><br><span class="line">    cur = conn.cursor()</span><br><span class="line"></span><br><span class="line">    tables = [<span class="string">&#x27;rdtree1m&#x27;</span>,<span class="string">&#x27;rdtree2m&#x27;</span>,<span class="string">&#x27;rdtree5m&#x27;</span>,<span class="string">&#x27;rdtree10m&#x27;</span>]</span><br><span class="line">    <span class="keyword">for</span> table <span class="keyword">in</span> tables:</span><br><span class="line">        cur.execute(<span class="string">&#x27;alter table &#x27;</span> + table + <span class="string">&#x27; add words_tsv tsvector;&#x27;</span>)</span><br><span class="line">        print(<span class="string">&quot;words_tsv added successful for %s&quot;</span>%(table))</span><br><span class="line"></span><br><span class="line">        cur.execute(<span class="string">&#x27;update &#x27;</span> + table + <span class="string">&#x27; set words_tsv = to_tsvector(words);&#x27;</span>)</span><br><span class="line">        print(<span class="string">&quot;words_tsv set successful for %s&quot;</span>%(table))</span><br><span class="line">        conn.commit()</span><br></pre></td></tr></table></figure>
+<p>​    最后生成的数据表样式如下（以1M数据表为例）：</p>
+<ul>
+<li>B-tree</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/性能对比实验：B-tree 数据表显示.png" alt="性能对比实验：B-tree 数据表显示" style="zoom:70%;">
+
+<ul>
+<li>R-tree</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/性能对比实验：R-tree 数据表显示.png" alt="性能对比实验：R-tree 数据表显示" style="zoom:70%;">
+
+<ul>
+<li>RD-tree</li>
+</ul>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/性能对比实验：RD-tree 数据表显示.png" alt="性能对比实验：RD-tree 数据表显示" style="zoom:60%;">
+
+<h5 id="1-2-实验过程"><a href="#1-2-实验过程" class="headerlink" title="1.2 实验过程"></a>1.2 实验过程</h5><p>​    在 PostgreSQL 中自带原生的 B-tree索引和 R-tree 索引，但是没有原生的 RD-tree 索引（由Gist实现），因此本次性能分析实验我们使用 Gist 实现的 B-tree 索引和原生 B-tree索引、Gist 实现的 R-tree 索引和原生 R-tree索引以及 RD-tree 索引与无索引扫描进行性能比较。</p>
+<p>​    本次性能分析实验主要比较查询语句的性能，具体如下</p>
+<ul>
+<li>B-tree 会进行<u>等值查询（=）</u>、<u>非等值查询（&gt;, &lt;）</u>、<u>查询后排序</u>三项</li>
+<li>R-tree 进行<u>范围查询（&lt;@）</u>以及<u>KNN排序（$\leftrightarrow$）</u></li>
+<li>RD-tree 进行<u>匹配查询（@@）</u></li>
+</ul>
+<p>​    每种查询语句会在每个数据表上分别执行多次，取平均值作为查询性能的表示以减小误差，同时可以观察查询次数对查询性能的影响。其中等值查询会分别进行 $100/1000/10000/100000$ 次，其余查询分别进行 $10/100/1000$ 次。每次查询时，查询条件均由 python 脚本随机生成。</p>
+<h4 id="2-B-tree-索引性能分析"><a href="#2-B-tree-索引性能分析" class="headerlink" title="2. B-tree 索引性能分析"></a>2. B-tree 索引性能分析</h4><h5 id="2-1-等值查询"><a href="#2-1-等值查询" class="headerlink" title="2.1 等值查询"></a>2.1 等值查询</h5><p>​    我们分别使用 PostgreSQL 原生的 B-tree 索引（以下由B-tree代替）和由 Gist 实现的 B-tree 索引（以下由 Gist 代替）在四种规模（$1M/2M/5M/10M$）的数据表上分别进行了 $100/1000/10000/100000$ 次查询，以平均执行时间（ms）作为性能衡量标准，结果如下表所示：</p>
+<table align="center">
+<tr align="center">
+    <td rowspan="2"></td>
+    <td rowspan="2">数据量（M=百万）</td>
+    <td colspan="4">查询次数</td>
+</tr>
+<tr align="center">
+    <td>100</td>
+    <td>1000</td>
+    <td>10000</td>
+    <td>100000</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">B-tree</td>
+    <td>1M</td>
+    <td>0.03318</td>
+    <td>0.024798</td>
+    <td>0.018192</td>
+    <td>0.012111</td>  
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>0.05135</td>
+    <td>0.03864</td>
+    <td>0.021669</td>
+    <td>0.012036</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>0.06037</td>
+    <td>0.052307</td>
+    <td>0.031731</td>
+    <td>0.024</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>0.06896</td>
+    <td>0.057676</td>
+    <td>0.044845</td>
+    <td>0.034928</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">Gist</td>
+    <td>1M</td>
+    <td>0.07688</td>
+    <td>0.049448</td>
+    <td>0.028194</td>
+    <td>0.023334</td>  
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>0.09679</td>
+    <td>0.047306</td>
+    <td>0.038662</td>
+    <td>0.029991</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>0.10706</td>
+    <td>0.061588</td>
+    <td>0.060014</td>
+    <td>0.039931</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>0.14233</td>
+    <td>0.121944</td>
+    <td>0.071411</td>
+    <td>0.058829</td>
+</tr>
+</table>
+
+
+<p>​    从上表可以看出，在不同查询次数下，B-tree 和 Gist 都存在一定的性能差距，这里我们以十万次查询的性能为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree和Gist等值查询性能对比.png" alt="B-tree和Gist等值查询性能对比" style="zoom: 70%;">
+
+<p>​    可以看到：<strong>随着数据量逐渐增大，两种索引的查询时间都有所增加，但在四种数据集下，Gist 的查询时间都是 B-tree 的==两倍==左右</strong>。关于这一点其实在 PostgreSQL 的官方文档已有说明：使用 Gist 实现的 B-tree 性能并不会优于原生。在之后的非等值查询和排序实验中也能够发现，Gist 的性能相对 B-tree 有较明显的劣势。</p>
+<p>​    同时我们还注意到，<strong>随着查询次数的增加，两种索引的查询速度都有变快的趋势</strong>。以 B-tree 为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Btree等值查询时间与查询次数的关系.png" alt="Btree等值查询时间与查询次数的关系" style="zoom:70%;">
+
+<p>​    可以看到，在四种数据集下，随着查询次数的增加，B-tree 索引的查询时间都有逐渐缩短的趋势。我们猜测这是因为 PostgreSQL 会将查询完成的数据项放入缓存中，若下次再次查询到此项可以加速访问。而随着查询次数增多，缓存的数据项也增多，查询命中率也增大，最终造成这种现象。</p>
+<h5 id="2-2-非等值查询"><a href="#2-2-非等值查询" class="headerlink" title="2.2 非等值查询"></a>2.2 非等值查询</h5><p>​    我们使用 B-tree 和 Gist 在四张数据表上进行了非等值查询，由于相较于等值查询而言耗时更长，因此我们将查询次数下调至$10/100/1000$次。</p>
+<p>​    同时在非等值查询情境下，我们观察到即使已经建立了索引，数据库依然倾向于使用顺序扫描或位图扫描的情况时有发生，因此我们增加了<strong>无索引</strong>时的查询性能实验进行对比，结果如下表所示：</p>
+<table align="center">
+<tr align="center">
+    <td rowspan="2"></td>
+    <td rowspan="2">数据量</td>
+    <td colspan="4">查询次数</td>
+</tr>
+<tr align="center">
+    <td>10</td>
+    <td>100</td>
+    <td>1000</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">B-tree</td>
+    <td>1M</td>
+    <td>61.979</td>
+    <td>67.41578</td>
+    <td>63.08512</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>150.8887</td>
+    <td>116.6069</td>
+    <td>122.6648</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>276.8287</td>
+    <td>408.0294</td>
+    <td>409.7867</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>821.6075</td>
+    <td>853.392</td>
+    <td>807.5114</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">Gist</td>
+    <td>1M</td>
+    <td>107.5504</td>
+    <td>77.20416</td>
+    <td>79.64227</td>
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>201.8327</td>
+    <td>174.0398</td>
+    <td>184.9779</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>596.5293</td>
+    <td>552.2071</td>
+    <td>537.8044</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>772.0948</td>
+    <td>923.3244</td>
+    <td>1046.903</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">无索引</td>
+    <td>1M</td>
+    <td>91.2538</td>
+    <td>109.5809</td>
+    <td>99.35411</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>216.5602</td>
+    <td>206.1646</td>
+    <td>172.2122</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>473.8722</td>
+    <td>447.3681</td>
+    <td>457.0516</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>1170.888</td>
+    <td>871.7418</td>
+    <td>843.4366</td>
+</tr>
+</table>
+
+
+<p>​    通过上述数据我们可以观察到，在非等值查询条件下，<strong>B-tree 的性能依然是整体优于 Gist，但是差距不再像等值查询时相差两倍那么明显</strong>。同时值得注意的是，<strong>无索引时的查询性能不再像等值查询时那样远远慢于有索引查询了</strong>。我们以 $1000$ 次查询的性能数据为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree、Gist和无索引三种情况非等值查询性能对比.png" alt="B-tree、Gist和无索引三种情况非等值查询性能对比" style="zoom:70%;">
+
+<p>​    从上表可以看出，B-tree 的查询性能依然整体优于无索引查询，但是差距并不明显；而 ==随着数据量的增大 Gist 的性能逐渐劣于无索引查询，并且差距越来越大==。我们认为这是由于非等值查询导致需要搜索的数据项增多，索引查询需要耗费更多时间在索引层，相比之下直接在数据层进行扫描可能会更快。可以预见，当数据量进一步提高时，B-tree 的性能也会逐渐劣于无索引扫描。</p>
+<p>​    我们还发现了另外一个不同于等值查询的现象：==在非等值查询中，随着查询次数的增加，查询性能可能不再像等值查询时那样获得提升，而是有所下降==，我们以 Gist 索引为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist非等值查询时间与查询次数的关系.png" alt="Gist非等值查询时间与查询次数的关系" style="zoom:70%;">
+
+<p>​    当使用 Gist 索引时，查询 $1000$ 次的平均用时相比查询 $100$ 次而言反而有所升高，这在一千万规模的数据集上非常明显。我们认为这是因为非等值查询会占用更多的缓存空间，让数据库系统没法在缓存区保留已查询数据项，从而使查询性能不再提升，而是随着查询次数增多不断下降。</p>
+<h5 id="2-3-查询后排序"><a href="#2-3-查询后排序" class="headerlink" title="2.3 查询后排序"></a>2.3 查询后排序</h5><p>​    我们使用 B-tree 和 Gist 在四张数据表上进行了增加排序的非等值查询，以下是实验结果：</p>
+<table align="center">
+<tr align="center">
+    <td rowspan="2"></td>
+    <td rowspan="2">数据量</td>
+    <td colspan="4">查询次数</td>
+</tr>
+<tr align="center">
+    <td>10</td>
+    <td>100</td>
+    <td>1000</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">B-tree</td>
+    <td>1M</td>
+    <td>177.2743</td>
+    <td>211.1747</td>
+    <td>196.704</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>482.5123</td>
+    <td>421.7937</td>
+    <td>400.1802</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>8856.351</td>
+    <td>7346.194</td>
+    <td>-</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">Gist</td>
+    <td>1M</td>
+    <td>456.3699</td>
+    <td>395.4264</td>
+    <td>358.9771</td>
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>892.9861</td>
+    <td>746.8035</td>
+    <td>768.7536</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>10058.31</td>
+    <td>9237.658</td>
+    <td>-</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">无索引</td>
+    <td>1M</td>
+    <td>359.9617</td>
+    <td>369.8334</td>
+    <td>372.0706</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>730.1155</td>
+    <td>777.723</td>
+    <td>704.2577</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>1445.078</td>
+    <td>1919.576</td>
+    <td>2063.705</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>2851.832</td>
+    <td>3133.163</td>
+    <td>3026.798</td>
+</tr>
+</table>
+
+
+<blockquote>
+<p>注：由于查询用时过长，这里我们并未记录 $5$M-$1000$ 次查询结果以及 $10$M 数据量的查询结果</p>
+</blockquote>
+<p>​    显然，与不排序的非等值查询相比，<strong>增加排序的查询明显要耗费更多时间</strong>。出现这种情况，可能是因为在数据量过大的情况下，缓存已经不够用，需要更加频繁的 I/O 进行数据交换，从而严重影响了索引的性能。我们以 B-tree 为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/B-tree排序与非排序查询性能对比.png" alt="B-tree排序与非排序查询性能对比" style="zoom:70%;">
+
+<p>​    <strong>带排序的非等值查询用时相比非排序增加了==三倍==左右</strong>，Gist 索引的情况也与之相似，除此以外，当数据量来到五百万以上时，<strong>索引查询用时陡升</strong>，以 Gist 为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist查询后排序时间与数据量的关系.png" alt="Gist查询后排序时间与数据量的关系" style="zoom:70%;">
+
+<p>​    下图给出了无索引情况下查询后排序时间与数据量间的关系，需要特别指出的是：**无索引查询排序的用时与数据量增加成正比，而且==并没有出现索引查询时性能急剧下降的情况==**。</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/无索引查询后排序时间与数据量的关系.png" alt="无索引查询后排序时间与数据量的关系" style="zoom:70%;">
+
+<h5 id="2-4-总结"><a href="#2-4-总结" class="headerlink" title="2.4 总结"></a>2.4 总结</h5><p>​    我们针对 B-tree 索引分别进行了等值查询、非等值查询和查询后排序，性能对比如下：</p>
+<ul>
+<li><p>Gist vs B-tree：实验结果显示 PostgreSQL <strong>原生的 B-tree</strong> 在三种场景下性能<strong>均优于</strong> <strong>Gist 实现的 B-tree</strong></p>
+</li>
+<li><p>Gist、B-tre vs 无索引：</p>
+<ul>
+<li>在<strong>等值查询</strong>中：两种索引的查询性能<strong>远远优于无索引查询</strong></li>
+<li>在<strong>非等值查询</strong>中：随着数据量逐渐增大，索引查询的性能逐渐<strong>被无索引查询超越</strong>，尤其是在排序情景下，数据量足够大时，索引查询有可能会遭遇严重的性能瓶颈，导致性能断崖式下降，反而不使用索引的效果更好</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-R-tree-索引性能分析"><a href="#3-R-tree-索引性能分析" class="headerlink" title="3. R-tree 索引性能分析"></a>3. R-tree 索引性能分析</h4><h5 id="3-1-范围查询"><a href="#3-1-范围查询" class="headerlink" title="3.1 范围查询"></a>3.1 范围查询</h5><p>​    我们分别使用 PostgreSQL 原生的 R-tree 索引（以下由 R-tree 代替）和由 Gist 实现的 R-tree 索引（以下由 Gist 代替）在四种规模（$1M/2M/5M/10M$）的数据表上分别进行了 $10/100/1000$ 次范围查询（&lt;@ box），以平均执行时间（ms）作为性能衡量标准，结果如下表所示。需要说明的是，在使用 R-tree 索引的场景中，<strong>无索引扫描的性能要远远落后于索引扫描</strong>，因此在 R-tree 查询性能分析中我们不再对比无索引扫描性能。</p>
+<table align="center">
+<tr align="center">
+    <td rowspan="2"></td>
+    <td rowspan="2">数据量</td>
+    <td colspan="4">查询次数</td>
+</tr>
+<tr align="center">
+    <td>10</td>
+    <td>100</td>
+    <td>1000</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">R-tree</td>
+    <td>1M</td>
+    <td>49.6526</td>
+    <td>52.8736</td>
+    <td>47.26513</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>117.0581</td>
+    <td>120.0193</td>
+    <td>106.7405</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>1138.945</td>
+    <td>2136.78</td>
+    <td>2231.591</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>3743.78</td>
+    <td>6100.476</td>
+    <td>9216.125</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">Gist</td>
+    <td>1M</td>
+    <td>131.6751</td>
+    <td>97.39799</td>
+    <td>79.05427</td>
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>139.4353</td>
+    <td>109.159</td>
+    <td>135.2277</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>1144.158</td>
+    <td>3627.209</td>
+    <td>2551.51</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>3458.488</td>
+    <td>6852.235</td>
+    <td>9485.287</td>
+</tr>
+</table>
+
+
+<p>​    由上表可以看出，整体而言 R-tree 索引的范围查询性能要优于 Gist 索引。我们以 $1000$ 次查询次数的结果为例进行分析：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/R-tree和Gist范围查询性能对比.png" alt="R-tree和Gist范围查询性能对比" style="zoom:70%;">
+
+<p>​    可以看到，在四种规模的数据集中，<strong>R-tree 索引的性能都要略优于 Gist</strong>，但是差异并不十分明显，并且<strong>随着数据规模的增大，两者的性能逐渐接近。</strong></p>
+<p>​    我们还发现，对于两种索引而言，在相同的数据集但<strong>不同查询次数下查询性能会出现较大波动</strong>，并且<strong>在数据集规模越大时这一现象越明显</strong>，同时使用 Gist 索引时这一现象也更明显。</p>
+<p>​    我们先分析 R-tree 索引。我们认为查询 $10$ 次的结果误差仍然比较大，因此更多考虑查询 $100$ 和 $1000$ 次的结果，比较分析如下：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/R-tree性能与查询次数的关系.png" alt="R-tree性能与查询次数的关系" style="zoom:77%;">
+
+<p>​    由图表可知，当数据规模为一百万、两百万、五百万条时，不同查询次数下 R-tree 索引查询性能变化并不大，当数据规模来到一千万时，<u>查询 $1000$ 次时的查询性能要明显劣于查询 $100$ 次时</u>。造成这种现象的原因，我们认为和 B-tree 索引是类似的：<strong>当查询次数增多后，缓存空间被大量占用导致查询性能出现了瓶颈</strong>。</p>
+<p>​    我们再来看 Gist 索引的情况。和 R-tree 相比，Gist 索引的查询性能变化要更明显，如下图所示：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist性能与查询次数的关系.png" alt="Gist性能与查询次数的关系" style="zoom:70%;">
+
+<p>​    可以看到，相比 R-tree 索引，Gist 索引在四种规模数据集中，<strong>不同查询次数下查询性能波动比较大</strong>。我们认为这可能是因为两种索引底层的缓存利用机制有所区别，而 R-tree 索引针对范围查询这一特定的应用场景进行了一定的优化，所以表现得更加稳定。</p>
+<h5 id="3-2-KNN排序"><a href="#3-2-KNN排序" class="headerlink" title="3.2 KNN排序"></a>3.2 KNN排序</h5><p>​    我们使用 R-tree 和 Gist 在四张数据表上进行了 KNN 排序，其中每张表返回的 point 数量与该表的规模正成比（数据量/$100$），以更好地体现不同规模数据集下两种索引性能表现的差异，结果如下表所示：</p>
+<table align="center">
+<tr align="center">
+    <td rowspan="2"></td>
+    <td rowspan="2">数据量</td>
+    <td colspan="4">查询次数</td>
+</tr>
+<tr align="center">
+    <td>10</td>
+    <td>100</td>
+    <td>1000</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">R-tree</td>
+    <td>1M</td>
+    <td>30.0405</td>
+    <td>13.84511</td>
+    <td>11.68973</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>43.0087</td>
+    <td>24.04613</td>
+    <td>23.02512</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>265.9871</td>
+    <td>243.214</td>
+    <td>261.8839</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>736.0935</td>
+    <td>696.9722</td>
+    <td>662.0441</td>
+</tr>
+<tr align="center">
+    <td rowspan="4">Gist</td>
+    <td>1M</td>
+    <td>17.9497</td>
+    <td>11.12343</td>
+    <td>10.8992</td>
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>39.178</td>
+    <td>22.71717</td>
+    <td>22.4646</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>240.5831</td>
+    <td>239.0794</td>
+    <td>239.3458</td>
+</tr>
+<tr align="center">
+    <td>10M</td>
+    <td>671.5387</td>
+    <td>650.6201</td>
+    <td>658.2245</td>
+</tr>
+</table>
+
+
+<p>​    整体上看，两种索引在 KNN 排序场景下的性能差距并不大，<strong>Gist 的性能要略优于 R-tree</strong>。我们以 $1000$ 次查询结果为例：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/R-tree和GistKNN查询性能对比.png" alt="R-tree和GistKNN查询性能对比" style="zoom:70%;">
+
+<p>​    可以看到两种索引的查询用时在四个规模的数据集下都比较接近，Gist 相较而言要略快一些。并且不同查询次数对两种索引的性能影响也微乎其微。</p>
+<h5 id="3-3-总结"><a href="#3-3-总结" class="headerlink" title="3.3 总结"></a>3.3 总结</h5><p>​    我们针对 R-tree 索引进行了范围查询和 KNN 排序两种场景下的性能实验，结果显示 PostgreSQL 原生的 R-tree 与 Gist 实现的 R-tree 性能差异并不如 B-tree 那么明显</p>
+<ul>
+<li>在 <strong>KNN 排序场景下，两者的查询性能几乎相同</strong></li>
+<li>在范围查询中，<strong>Gist 在不同查询次数下性能波动比较大，而 R-tree 更加稳定</strong>，我们认为 R-tree 针对特定应用场景对缓存利用进行了一些优化以获得更稳定的性能</li>
+</ul>
+<h4 id="4-RD-tree-索引性能分析"><a href="#4-RD-tree-索引性能分析" class="headerlink" title="4. RD-tree 索引性能分析"></a>4. RD-tree 索引性能分析</h4><h5 id="4-1-全文检索"><a href="#4-1-全文检索" class="headerlink" title="4.1 全文检索"></a>4.1 全文检索</h5><p>​    由于 PostgreSQL 并没有原生的 RD-tree 索引，只有通过 Gist 实现的 RD-tree 索引，因此本节我们仅进行了 Gist 索引与无索引查询的性能对比实验。</p>
+<p>​    我们通过 python 脚本，从含有 $1087$ 个单词的文本中以随机数量随机抽取单词并组合成句子，分别生成了含有一百万、两百万、五百万数据项的数据集，并在这些数据集上进行了全文检索（匹配查询），查询用时结果如下：</p>
+<table align="center">
+<tr align="center">
+    <td rowspan="2"></td>
+    <td rowspan="2">数据量</td>
+    <td colspan="4">查询次数</td>
+</tr>
+<tr align="center">
+    <td>10</td>
+    <td>100</td>
+    <td>1000</td>
+</tr>
+<tr align="center">
+    <td rowspan="3">Gist</td>
+    <td>1M</td>
+    <td>402.1559</td>
+    <td>467.6958</td>
+    <td>505.8494</td> 
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>1323.648</td>
+    <td>1351.347</td>
+    <td>1399.162</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>2755.076</td>
+    <td>3912.203</td>
+    <td>3888.738</td>
+</tr>
+<tr align="center">
+    <td rowspan="3">无索引</td>
+    <td>1M</td>
+    <td>941.5422</td>
+    <td>1024.426</td>
+    <td>1144.391</td>
+</tr>
+<tr align="center">
+    <td>2M</td>
+    <td>1749.347</td>
+    <td>2744.705</td>
+    <td>1780.661</td>
+</tr>
+<tr align="center">
+    <td>5M</td>
+    <td>3277.635</td>
+    <td>3398.889</td>
+    <td>4955.399</td>
+</tr>
+</table>
+
+
+<p>​    由于查询 $10$ 次的结果误差依然比较大，因此我们更多考虑查询 $100/1000$次的结果进行性能分析：</p>
+<img src="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/Gist实现的RD-tree与无索引的性能对比.png" alt="Gist实现的RD-tree与无索引的性能对比" style="zoom:70%;">
+
+<p>​    从上图可以看出，<strong>当数据量不大时（一百万条），Gist 索引的查询性能要远快于无索引的查询性能，约为==两倍==左右。而随着数据量逐渐增大，两者的差距开始不断缩小</strong>。</p>
+<p>​    值得注意的是：<strong>在无索引查询的性能数据中，当查询次数为 100 次时，在两百万和五百万的数据集上出现==比较大的数据波动==，与查询次数为 1000 次的性能数据差异较大</strong>。</p>
+<h5 id="4-2-总结"><a href="#4-2-总结" class="headerlink" title="4.2 总结"></a>4.2 总结</h5><p>​    通过在三种不同规模的数据集上分别进行 Gist 索引和无索引的全文检索后，我们发现 Gist 索引的性能在小规模数据集上<strong>明显优于</strong>无索引查询，而当数据集不断增大时，两者的性能差距逐渐缩小，但是 Gist 索引<strong>依然优于</strong>无索引查询性能。</p>
+<h3 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h3><ul>
+<li>准备工作<ul>
+<li>性能指标：首先我们分析了一条 SQL 语句的处理过程，发现通过 EXPLAIN 命令可以查看规划器生成的查询计划，里面提供了大量统计信息，这里我们选用执行时间作为本次性能分析实验评判的主要标准，以访问内存/Cache的次数和索引使用情况作为辅助指标</li>
+<li>索引测试：然后我们按照官方文档，测试了 PostgreSQL 中的原生 B-tree 索引对性能的提升，以及 Gist 索引在三种应用场景下对性能的提升：几何类型检索（Gist 实现的 R-tree）、标量类型排序（Gist 实现的 B-tree）和全文检索（Gist 实现的 RD-tree）。其中我们发现由于系统内部自动优化，<strong>当数据量比较大时并没有使用索引扫描，实际使用的是位图扫描</strong>，因此需要额外进行设置来禁止位图扫描，索引测试为后续的性能分析实验排除了自动优化等可能带来的潜在干扰</li>
+</ul>
+</li>
+<li>主要工作：我们使用 Gist 实现的 B-tree、R-tree 和 RD-tree 对比了 PostgreSQL 中原生的索引以及无索引扫描在各种特定场景下的查询性能，包括 1)  B-tree 的等值查询、非等值查询、排序；2) R-tree 的范围查询、KNN 排序；3) RD-tree 的全文检索</li>
+<li>实验结论<ul>
+<li>Gist 实现的 B-tree 和 R-tree 索引在对应的场景下其查询性能相比原生索引<strong>并没有优势</strong>，尤其是 B-tree 索引，在三种场景下均全面落后于原生索引</li>
+<li>对于 Gist 实现的 RD-tree 索引，其查询性能在小规模数据集上<strong>明显优于</strong>无索引查询，而随着数据集规模的增大，两者的差距会不断缩小</li>
+<li>虽然 Gist 索引相比原生索引在性能上并无显著优势，但得益于 Gist 结构的泛用性和<strong>可扩展性</strong>，使得 Gist 能够执行更加复杂的任务，这是 B-tree、R-tree 等原生索引无法企及的优势</li>
+<li>另外，本次实验中我们还发现，不论是 Gist 索引，还是其它原生索引在面对较大规模的数据集时，都存在<strong>性能大幅下降</strong>的情况，我们认为这可能是因为索引扫描本身就需要占用更多的缓存空间，当数据规模过大时造成了缓存空间不够的情况，需要系统做更频繁的数据交换，使得性能遇到瓶颈。所以我们在对数据表建立索引时，应当时刻关注系统资源利用情况，以免遭遇类似性能问题</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/" title="索引调优">http://coderzqy.github.io/2022/10/18/索引调优/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/FDU-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E4%B8%8E%E8%B0%83%E4%BC%98%E8%AF%BE%E7%A8%8B/" rel="tag"># FDU-数据库系统管理与调优课程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/01/algorithm-2/" rel="prev" title="摩尔投票法(Boyer–Moore majority vote algorithm)">
+      <i class="fa fa-chevron-left"></i> 摩尔投票法(Boyer–Moore majority vote algorithm)
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PJ%E2%80%94%E2%80%94%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98"><span class="nav-number">1.</span> <span class="nav-text">PJ——索引调优</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%E3%80%81%E4%BB%BB%E5%8A%A1%E8%A6%81%E6%B1%82"><span class="nav-number">1.1.</span> <span class="nav-text">1、任务要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%E3%80%81%E6%9D%90%E6%96%99%E9%98%85%E8%AF%BB%E6%8A%A5%E5%91%8A"><span class="nav-number">1.2.</span> <span class="nav-text">2、材料阅读报告</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Introduction"><span class="nav-number">1.2.1.</span> <span class="nav-text">1. Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81%E5%AE%9E%E7%8E%B0%E6%90%9C%E7%B4%A2%E6%A0%91%E6%89%A9%E5%B1%95%E7%9A%84%E4%B8%A4%E7%A7%8D%E4%B8%BB%E8%A6%81%E6%80%9D%E8%B7%AF"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">1、实现搜索树扩展的两种主要思路</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81Gist-%E4%BC%98%E7%82%B9"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">2、Gist 优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%E3%80%81Gist-%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">3、Gist 存在的问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4%E3%80%81%E6%96%87%E7%AB%A0%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.1.4.</span> <span class="nav-text">4、文章结构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-The-Gist-of-Database-Search-Trees"><span class="nav-number">1.2.2.</span> <span class="nav-text">2. The Gist of Database Search Trees</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81%E6%90%9C%E7%B4%A2%E6%A0%91%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">1、搜索树介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81Gist-%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">2、Gist 设计思路</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-The-Generalized-Search-Tree"><span class="nav-number">1.2.3.</span> <span class="nav-text">3. The Generalized  Search Tree</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-structure"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">3.1 structure</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-Properties"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">3.2 Properties</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-Key-Method"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">3.3 Key Method</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-4-Tree-Methods"><span class="nav-number">1.2.3.4.</span> <span class="nav-text">3.4 Tree Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-Search"><span class="nav-number">1.2.3.4.1.</span> <span class="nav-text">1. Search</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-Search-In-Linearly-Ordered-Domains"><span class="nav-number">1.2.3.4.2.</span> <span class="nav-text">2. Search In Linearly Ordered Domains</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-Insert"><span class="nav-number">1.2.3.4.3.</span> <span class="nav-text">3. Insert</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-Delete"><span class="nav-number">1.2.3.4.4.</span> <span class="nav-text">4. Delete</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-The-Gist-for-Three-Applications"><span class="nav-number">1.2.4.</span> <span class="nav-text">4. The Gist for Three Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-GiSTs-Over-mathbb-Z-B-trees"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">4.1 GiSTs Over $\mathbb{Z}$ (B+trees)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-GiSTs-Over-Polygons-in-mathbb-R-R-trees"><span class="nav-number">1.2.4.2.</span> <span class="nav-text">4.2 GiSTs Over Polygons in $\mathbb{R}$ (R-trees)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-GiSTs-Over-mathcal-P-mathbb-Z-RD-trees"><span class="nav-number">1.2.4.3.</span> <span class="nav-text">4.3 GiSTs Over $\mathcal{P}(\mathbb{Z})$ (RD-trees)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Gist-Performance-Issues"><span class="nav-number">1.2.5.</span> <span class="nav-text">5. Gist Performance Issues</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%97%A0%E9%87%8D%E5%8F%A0-key"><span class="nav-number">1.2.5.1.</span> <span class="nav-text">1. 无重叠 $key$</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%9C%89%E9%87%8D%E5%8F%A0-key"><span class="nav-number">1.2.5.2.</span> <span class="nav-text">2. 有重叠 $key$</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1%E3%80%81%E4%B8%BB%E8%A6%81%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.2.5.2.1.</span> <span class="nav-text">1、主要原因</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%87%8D%E5%8F%A0%E5%92%8C-key-%E5%8E%8B%E7%BC%A9%E5%B8%A6%E6%9D%A5%E7%9A%84%E4%BF%A1%E6%81%AF%E6%8D%9F%E5%A4%B1"><span class="nav-number">1.2.5.2.2.</span> <span class="nav-text">数据重叠和 $key$ 压缩带来的信息损失</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2%E3%80%81%E6%80%A7%E8%83%BD%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">1.2.5.2.3.</span> <span class="nav-text">2、性能的影响</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3%E3%80%81%E6%A8%A1%E5%9E%8B%E9%AA%8C%E8%AF%81"><span class="nav-number">1.2.5.2.4.</span> <span class="nav-text">3、模型验证</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-Implementation-Issues"><span class="nav-number">1.2.6.</span> <span class="nav-text">6. Implementation Issues</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-Summary-and-Future-Work"><span class="nav-number">1.2.7.</span> <span class="nav-text">7. Summary and Future Work</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%E3%80%81Gist-%E7%B4%A2%E5%BC%95%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%8A%A5%E5%91%8A"><span class="nav-number">1.3.</span> <span class="nav-text">3、Gist 索引性能分析报告</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87"><span class="nav-number">1.3.1.</span> <span class="nav-text">一、性能指标</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-SQL-%E5%A4%84%E7%90%86%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">1. SQL 处理过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%AE%A1%E5%88%92%E6%A0%91%E5%88%86%E6%9E%90"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">2. 计划树分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-EXPLAIN-%E5%B7%A5%E5%85%B7"><span class="nav-number">1.3.1.2.1.</span> <span class="nav-text">2.1 EXPLAIN 工具</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-EXPLAIN-%E7%BB%93%E6%9E%9C%E8%AF%B4%E6%98%8E"><span class="nav-number">1.3.1.2.2.</span> <span class="nav-text">2.2 EXPLAIN 结果说明</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E6%89%A7%E8%A1%8C%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.3.1.2.3.</span> <span class="nav-text">1. 执行类型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-cost-%E5%80%BC"><span class="nav-number">1.3.1.2.4.</span> <span class="nav-text">2. cost 值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-Buffers"><span class="nav-number">1.3.1.2.5.</span> <span class="nav-text">3. Buffers</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-Time"><span class="nav-number">1.3.1.2.6.</span> <span class="nav-text">4. Time</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-%E5%85%B6%E4%BB%96%E4%BF%A1%E6%81%AF"><span class="nav-number">1.3.1.2.7.</span> <span class="nav-text">5. 其他信息</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-3-%E8%A7%84%E5%88%92%E5%99%A8%E7%9A%84%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="nav-number">1.3.1.2.8.</span> <span class="nav-text">2.3 规划器的统计数据</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">3. 性能分析方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81PostgreSQL-%E7%B4%A2%E5%BC%95"><span class="nav-number">1.3.2.</span> <span class="nav-text">二、PostgreSQL 索引</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-B-tree-%E7%B4%A2%E5%BC%95"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">1. B-tree 索引</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Gist-%E7%B4%A2%E5%BC%95"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">2. Gist 索引</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-%E5%87%A0%E4%BD%95%E7%B1%BB%E5%9E%8B%E6%A3%80%E7%B4%A2%EF%BC%88R-tree%EF%BC%89"><span class="nav-number">1.3.2.2.1.</span> <span class="nav-text">2.1 几何类型检索（R-tree）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-%E6%A0%87%E9%87%8F%E7%B1%BB%E5%9E%8B%E6%8E%92%E5%BA%8F%EF%BC%88B-tree%EF%BC%89"><span class="nav-number">1.3.2.2.2.</span> <span class="nav-text">2.2 标量类型排序（B-tree）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-3-%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%EF%BC%88RD-tree%EF%BC%89"><span class="nav-number">1.3.2.2.3.</span> <span class="nav-text">2.3 全文检索（RD-tree）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81Gist-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94%E5%AE%9E%E9%AA%8C"><span class="nav-number">1.3.3.</span> <span class="nav-text">三、Gist 性能对比实验</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">1. 实验设置</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-%E6%95%B0%E6%8D%AE%E9%9B%86%E5%87%86%E5%A4%87"><span class="nav-number">1.3.3.1.1.</span> <span class="nav-text">1.1 数据集准备</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-%E5%AE%9E%E9%AA%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.3.1.2.</span> <span class="nav-text">1.2 实验过程</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-B-tree-%E7%B4%A2%E5%BC%95%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">2. B-tree 索引性能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2"><span class="nav-number">1.3.3.2.1.</span> <span class="nav-text">2.1 等值查询</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-%E9%9D%9E%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2"><span class="nav-number">1.3.3.2.2.</span> <span class="nav-text">2.2 非等值查询</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-3-%E6%9F%A5%E8%AF%A2%E5%90%8E%E6%8E%92%E5%BA%8F"><span class="nav-number">1.3.3.2.3.</span> <span class="nav-text">2.3 查询后排序</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.3.2.4.</span> <span class="nav-text">2.4 总结</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-R-tree-%E7%B4%A2%E5%BC%95%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">3. R-tree 索引性能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-%E8%8C%83%E5%9B%B4%E6%9F%A5%E8%AF%A2"><span class="nav-number">1.3.3.3.1.</span> <span class="nav-text">3.1 范围查询</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-2-KNN%E6%8E%92%E5%BA%8F"><span class="nav-number">1.3.3.3.2.</span> <span class="nav-text">3.2 KNN排序</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.3.3.3.</span> <span class="nav-text">3.3 总结</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-RD-tree-%E7%B4%A2%E5%BC%95%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">1.3.3.4.</span> <span class="nav-text">4. RD-tree 索引性能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#4-1-%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2"><span class="nav-number">1.3.3.4.1.</span> <span class="nav-text">4.1 全文检索</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-2-%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.3.4.2.</span> <span class="nav-text">4.2 总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.4.</span> <span class="nav-text">四、总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="君莫良"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">君莫良</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=1361979685&auto=1&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">君莫良</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>
