@@ -123,17 +123,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">39</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">42</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">27</span></a>
 
   </li>
   </ul>
@@ -163,7 +163,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/30/SLR-1/">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2023/12/23/CS144-Lab1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/05/30/SLR-1/" class="post-title-link" itemprop="url">SLR_1</a>
+            <a href="/2023/12/23/CS144-Lab1/" class="post-title-link" itemprop="url">CS144-Lab1</a>
         </h2>
 
         <div class="post-meta">
@@ -186,23 +186,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-05-30 18:54:31" itemprop="dateCreated datePublished" datetime="2021-05-30T18:54:31+08:00">2021-05-30</time>
+              <time title="创建时间：2023-12-23 21:02:53 / 修改时间：21:08:01" itemprop="dateCreated datePublished" datetime="2023-12-23T21:02:53+08:00">2023-12-23</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-18 23:10:19" itemprop="dateModified" datetime="2021-06-18T23:10:19+08:00">2021-06-18</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
+                  <a href="/categories/Stanford-CS144/" itemprop="url" rel="index"><span itemprop="name">Stanford-CS144</span></a>
                 </span>
             </span>
 
@@ -217,13 +211,12 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="编译原理实验5——SLR-1-文法分析器实现"><a href="#编译原理实验5——SLR-1-文法分析器实现" class="headerlink" title="编译原理实验5——SLR(1)文法分析器实现"></a>编译原理实验5——SLR(1)文法分析器实现</h1><h2 id="1、代码功能："><a href="#1、代码功能：" class="headerlink" title="1、代码功能："></a>1、代码功能：</h2><p>（1）计算非终结符的FIRST和FOLLOW集</p>
-<p>（2）构造SLR分析表</p>
-<p>（3）判断该文法是否为SLR文法</p>
-<p>（4）输入字符串，按照SLR分析法判断该字符串的语法是否正确，并给出判断过程</p>
+          <h1 id="Lab-Checkpoint-1-stitching-substrings-into-a-byte-stream"><a href="#Lab-Checkpoint-1-stitching-substrings-into-a-byte-stream" class="headerlink" title="Lab Checkpoint 1: stitching substrings into a byte stream"></a>Lab Checkpoint 1: stitching substrings into a byte stream</h1><h2 id="0-Overview"><a href="#0-Overview" class="headerlink" title="0. Overview"></a>0. Overview</h2><img src="/2023/12/23/CS144-Lab1/CS144 Labs'structure 1-3.png" alt="CS144 Labs'structure 1-3" style="zoom:50%;">
+
+<p>​    由于底层网络是以 “best effort” 的形式在进行数据报 (datagram) 的传输，意味着在数据包传输的过程中，很可能会发生<strong>丢失</strong>、 <strong>重复</strong>、<strong>乱序</strong>或者<strong>被替换</strong>的现象，因此需要 TCP 为数据包提供可靠的底层逻辑。Lab1 的实验需要完成 ByteStream 外部的 <strong>StreamReassembler</strong> 部分。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2021/05/30/SLR-1/#more" rel="contents">
+              <a class="btn" href="/2023/12/23/CS144-Lab1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -250,7 +243,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/20/operator-precedence/">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2023/12/23/CS144-Lab0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -264,7 +257,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/05/20/operator-precedence/" class="post-title-link" itemprop="url">operator_precedence</a>
+            <a href="/2023/12/23/CS144-Lab0/" class="post-title-link" itemprop="url">CS144-Lab0</a>
         </h2>
 
         <div class="post-meta">
@@ -273,23 +266,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-05-20 21:34:12" itemprop="dateCreated datePublished" datetime="2021-05-20T21:34:12+08:00">2021-05-20</time>
+              <time title="创建时间：2023-12-23 20:52:31 / 修改时间：21:07:52" itemprop="dateCreated datePublished" datetime="2023-12-23T20:52:31+08:00">2023-12-23</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-21 07:58:31" itemprop="dateModified" datetime="2021-05-21T07:58:31+08:00">2021-05-21</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
+                  <a href="/categories/Stanford-CS144/" itemprop="url" rel="index"><span itemprop="name">Stanford-CS144</span></a>
                 </span>
             </span>
 
@@ -304,268 +291,299 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="编译原理实验4——算符优先文法实现表达式求值"><a href="#编译原理实验4——算符优先文法实现表达式求值" class="headerlink" title="编译原理实验4——算符优先文法实现表达式求值"></a>编译原理实验4——算符优先文法实现表达式求值</h1><h2 id="1、概述"><a href="#1、概述" class="headerlink" title="1、概述"></a>1、概述</h2><p>​       算符优先分析法(Operator Precedence Parse)是仿效四则运算的计算过程而构造的一种语法分析方法。算符优先分析法的关键是比较两个相继出现的终结符的优先级而决定应采取的动作。</p>
-<ul>
-<li>优点：简单，有效，适合表达式的分析。</li>
-<li>缺点：只适合于算符优先文法，是一个不大的文法类。</li>
+          <h1 id="Lab-Checkpoint-0-networking-warmup"><a href="#Lab-Checkpoint-0-networking-warmup" class="headerlink" title="Lab Checkpoint 0: networking warmup"></a>Lab Checkpoint 0: networking warmup</h1><h2 id="1-Set-up-GNU-Linux-on-your-computer"><a href="#1-Set-up-GNU-Linux-on-your-computer" class="headerlink" title="1. Set up GNU/Linux on your computer"></a>1. Set up GNU/Linux on your computer</h2><p>CS144 的任务需要 GNU/Linux 操作系统和一个支持 C++ 2020 标准的 C++ 编译器（非常激进 … ）</p>
+<p>我的运行环境：<strong>ubuntu-22.04.3</strong> with <strong>g++ 13.2.0</strong></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/12/23/CS144-Lab0/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+    
+    </div>
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">索引调优</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-10-18 11:58:17 / 修改时间：12:24:07" itemprop="dateCreated datePublished" datetime="2022-10-18T11:58:17+08:00">2022-10-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/course/" itemprop="url" rel="index"><span itemprop="name">course</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="PJ——索引调优"><a href="#PJ——索引调优" class="headerlink" title="PJ——索引调优"></a>PJ——索引调优</h1><h2 id="1、任务要求"><a href="#1、任务要求" class="headerlink" title="1、任务要求"></a>1、任务要求</h2><ul>
+<li><p>阅读材料：<a target="_blank" rel="noopener" href="https://www.vldb.org/conf/1995/P562.PDF">J. M. Hellerstein, J. F. Naughton, A. Pfeffer. Generalized Search Trees for Database Systems. In VLDB 1995.</a></p>
+</li>
+<li><p>背景描述：GiST 的意思是通用的搜索树（Generalized Search Tree），它是一种平衡树结构的访问方法，在系统中作为一个基本模版，可以使用它实现任意索引模式。B-trees、R-trees和许多其它的索引模式都可以用 GiST 实现。</p>
+</li>
+<li><p>作业要求：</p>
+<ol>
+<li><p>阅读材料的简要阅读报告 (pdf)</p>
+</li>
+<li><p>索引实践报告（二选一）</p>
+<ol>
+<li>对PG代码中的Gist使用性能进行分析，并形成报告 (pdf)<ul>
+<li>PG支持快速造数据，数据量建议百万条及以上</li>
+<li>主要为 <strong>Gist，B-trees，R-trees，RD-trees</strong>之间的性能比较分析，参考「参考材料2」</li>
 </ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/20/operator-precedence/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/20/LL1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/05/20/LL1/" class="post-title-link" itemprop="url">LL1</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-05-20 21:24:28" itemprop="dateCreated datePublished" datetime="2021-05-20T21:24:28+08:00">2021-05-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-30 23:39:05" itemprop="dateModified" datetime="2021-05-30T23:39:05+08:00">2021-05-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="编译原理实验3——LL-1-文法分析实现"><a href="#编译原理实验3——LL-1-文法分析实现" class="headerlink" title="编译原理实验3——LL(1)文法分析实现"></a>编译原理实验3——LL(1)文法分析实现</h1><h2 id="1、LL-1-文法介绍"><a href="#1、LL-1-文法介绍" class="headerlink" title="1、LL(1)文法介绍"></a>1、LL(1)文法介绍</h2><p>对文法G的句子进行确定的自顶向下语法分析的充分必要条件是：G的任意两个具有相同左部的产生式A—&gt;α|β 满足下列条件：</p>
-<p>（1）如果α、β均不能推导出ε，则 FIRST(α) ∩ FIRST(β) = ∅。</p>
-<p>（2）α 和 β 至多有一个能推导出 ε。</p>
-<p>（3）如果 β *═&gt; ε，则 FIRST(α) ∩ FOLLOW(A) = ∅。</p>
-<p>将满足上述条件的文法称为LL(1)文法。</p>
-<h2 id="2、实验要求"><a href="#2、实验要求" class="headerlink" title="2、实验要求"></a>2、实验要求</h2><ol>
-<li>给定文法构造FIRST集、SELECT集与FOLLOW集。</li>
-<li>构造文法预测分析表。</li>
-<li>进行语法分析，构造语法分析过程表</li>
+</li>
+<li>用PG中的Gist实现一类索引，并形成报告 (pdf, source codes)<ul>
+<li>可选索引：<strong>B+trees，Hash，倒排索引</strong></li>
+<li>实现规范参见「参考材料3」</li>
+<li>源码组织类似「参考材料4」即可，包含测试和README</li>
+</ul>
+</li>
 </ol>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/05/20/LL1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/04/01/smbms/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/04/01/smbms/" class="post-title-link" itemprop="url">smbms</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-04-01 10:55:50 / 修改时间：11:00:31" itemprop="dateCreated datePublished" datetime="2021-04-01T10:55:50+08:00">2021-04-01</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/javaweb/" itemprop="url" rel="index"><span itemprop="name">javaweb</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="超市订单管理系统SMBMS"><a href="#超市订单管理系统SMBMS" class="headerlink" title="超市订单管理系统SMBMS"></a>超市订单管理系统SMBMS</h1><p>javaweb实战项目学习笔记，参考视频：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV12J411M7Sj?p=1">狂神说Java</a></p>
-<h2 id="1、基本架构"><a href="#1、基本架构" class="headerlink" title="1、基本架构"></a>1、基本架构</h2><p><img src="/2021/04/01/smbms/image-20210226000203056-1617245792889.png" alt="image-20210226000203056"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/04/01/smbms/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/03/30/finite-automaton/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="君莫良">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="君莫良の博客">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/03/30/finite-automaton/" class="post-title-link" itemprop="url">finite_automaton</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-03-30 15:10:01 / 修改时间：21:29:55" itemprop="dateCreated datePublished" datetime="2021-03-30T15:10:01+08:00">2021-03-30</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="编译原理实验2——正则表达式-gt-NFA-gt-DFA-gt-MFA"><a href="#编译原理实验2——正则表达式-gt-NFA-gt-DFA-gt-MFA" class="headerlink" title="编译原理实验2——正则表达式-&gt;NFA-&gt;DFA-&gt;MFA"></a>编译原理实验2——正则表达式-&gt;NFA-&gt;DFA-&gt;MFA</h1><h2 id="1、词法分析理论基础：有穷自动机（FA）"><a href="#1、词法分析理论基础：有穷自动机（FA）" class="headerlink" title="1、词法分析理论基础：有穷自动机（FA）"></a>1、词法分析理论基础：有穷自动机（FA）</h2><h3 id="1-1-起源与定义"><a href="#1-1-起源与定义" class="headerlink" title="1.1 起源与定义"></a>1.1 起源与定义</h3><ul>
-<li>有穷自动机(Finite Automata，FA)由两位神经物理学家MeCuloch和Pitts于1948年首先提出，是对一类处理系统建立的数学模型；</li>
-<li>这类系统具有一系列<strong>离散</strong>的输入输出信息和<strong>有穷</strong>数目的内部状态（状态：概括了对过去输入信息处理的状况）；</li>
-<li>系统只需要根据当前所处的状态和当前面临的输入信息就可以决定系统的后继行为。每当系统处理了当前的输入后，系统的内部状态也将发生改变。</li>
+</li>
+<li><p>README，标明小组人员及分工表</p>
+</li>
+</ol>
+<ul>
+<li>以上所有文件压缩在一个zip文件内，文件名「姓名1_学号1，姓名2 _学号2….zip」</li>
+<li>推荐使用PostgreSQL 14.x Linux</li>
+</ul>
+</li>
+<li><p>参考材料</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/current/btree-gist.html">PostgreSQL: Documentation: 14: F.7. btree_gist</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.mengqingzhong.com/2020/10/01/postgresql-index-gist-5/">PostgreSQL索引(5) – GiST – PostgreSQL数据库内核探究 (mengqingzhong.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/current/gist-extensibility.html">PostgreSQL: Documentation: 14: 65.3. Extensibility</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/jinyyu/tlsh_gist">jinyyu/tlsh_gist (github.com)</a></li>
+</ol>
+</li>
+<li><p>附加说明</p>
+<ul>
+<li><p>小组/个人作业，每组提交一份文件，每组成员得分相同</p>
+</li>
+<li><p>四个作业之一，取已做作业中的最高分作为作业得分</p>
+</li>
+<li><p>本次作业结束后可换组</p>
+</li>
+</ul>
+</li>
 </ul>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2021/03/30/finite-automaton/#more" rel="contents">
+              <a class="btn" href="/2022/10/18/%E7%B4%A2%E5%BC%95%E8%B0%83%E4%BC%98/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+    
+    </div>
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2022/02/01/algorithm-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/02/01/algorithm-2/" class="post-title-link" itemprop="url">摩尔投票法(Boyer–Moore majority vote algorithm)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-02-01 20:09:49 / 修改时间：20:53:15" itemprop="dateCreated datePublished" datetime="2022-02-01T20:09:49+08:00">2022-02-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="算法笔记2——摩尔投票法-Boyer–Moore-majority-vote-algorithm"><a href="#算法笔记2——摩尔投票法-Boyer–Moore-majority-vote-algorithm" class="headerlink" title="算法笔记2——摩尔投票法(Boyer–Moore majority vote algorithm)"></a>算法笔记2——摩尔投票法(Boyer–Moore majority vote algorithm)</h1><h2 id="1、简要概述"><a href="#1、简要概述" class="headerlink" title="1、简要概述"></a>1、简要概述</h2><p>摩尔投票法(Boyer–Moore majority vote algorithm)出自<a href="https://link.zhihu.com/?target=https://www.cs.ou.edu/~rlpage/dmtools/mjrty.pdf">论文</a>，算法解决的问题是如何在任意多的候选人（选票无序），选出获得票数最多的那个。常见的算法是扫描一遍选票，对每个候选人进行统计的选票进行统计。当候选人的数目固定时，这个常见算法的时间复杂度为：<em>O</em>(<em>n</em>)，当候选人的数目不定时，统计选票可能会执行较长时间，可能需运行<em>O</em>(<em>n</em>^2^)的时间。当选票有序时，可以很容易编出<em>O</em>(<em>n</em>)的程序，首先找到中位数，然后检查中位数的个数是否超过选票的一半。这篇论文针对无序且侯选人不定的情形，提出了摩尔投票算法。算法的比较次数最多是选票（记为<em>n</em>）的两倍，可以在<em>O</em>(<em>n</em>)时间内选出获票最多的，空间开销为<em>O</em>(1)</p>
+<p>==摩尔投票法的一大应用就是求众数==。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/02/01/algorithm-2/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+    
+    </div>
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/07/12/algorithm-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/12/algorithm-1/" class="post-title-link" itemprop="url">链式前向星+SPFA</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-07-12 11:23:42 / 修改时间：19:03:14" itemprop="dateCreated datePublished" datetime="2021-07-12T11:23:42+08:00">2021-07-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="算法笔记1——链式前向星-SPFA-Dijkstra"><a href="#算法笔记1——链式前向星-SPFA-Dijkstra" class="headerlink" title="算法笔记1——链式前向星+SPFA+Dijkstra"></a>算法笔记1——链式前向星+SPFA+Dijkstra</h1><blockquote>
+<p>题目链接：[<a target="_blank" rel="noopener" href="https://www.luogu.com.cn/problem/P3371">P3371 【模板】单源最短路径（弱化版） - 洛谷 | 计算机科学教育新生态 (luogu.com.cn)</a>]</p>
+</blockquote>
+<h2 id="1、题目描述（入门）"><a href="#1、题目描述（入门）" class="headerlink" title="1、题目描述（入门）"></a>1、题目描述（入门）</h2><p>给出一个有向图，请输出从某一点出发到所有点的最短路径长度。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/07/12/algorithm-1/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -591,7 +609,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -659,20 +677,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">27</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-count">42</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -712,7 +730,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2022</span>
+  <span itemprop="copyrightYear">2023</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Checkpoint 6: putting it all together1. OverviewLab6 是一个选择性的实验，在前 6 个实验中我们已经完成了网络的框架：  Checkpoint 0 (a reliable byte stream)； Checkpoints 1–3 (the Transmission Control Protocol)； Checkpoint 4 (an IP&#x2F;E">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS144-Lab6">
+<meta property="og:url" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/index.html">
+<meta property="og:site_name" content="君莫良の博客">
+<meta property="og:description" content="Checkpoint 6: putting it all together1. OverviewLab6 是一个选择性的实验，在前 6 个实验中我们已经完成了网络的框架：  Checkpoint 0 (a reliable byte stream)； Checkpoints 1–3 (the Transmission Control Protocol)； Checkpoint 4 (an IP&#x2F;E">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/The%20Network.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/check6_server%20端.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/check6_client%20端.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/server_sending%20a%20file.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/client_sending%20a%20file.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/SHA-256%20哈希值对比.png">
+<meta property="article:published_time" content="2023-12-23T13:15:50.000Z">
+<meta property="article:modified_time" content="2023-12-23T13:17:37.974Z">
+<meta property="article:author" content="君莫良">
+<meta property="article:tag" content="计算机网络">
+<meta property="article:tag" content="TCP&#x2F;IP协议栈">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2023/12/23/CS144-Lab6/The%20Network.png">
+
+<link rel="canonical" href="http://coderzqy.github.io/2023/12/23/CS144-Lab6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>CS144-Lab6 | 君莫良の博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">君莫良の博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一只努力学习编程的猪头少年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">42</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">27</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2023/12/23/CS144-Lab6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="君莫良">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="君莫良の博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CS144-Lab6
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-12-23 21:15:50 / 修改时间：21:17:37" itemprop="dateCreated datePublished" datetime="2023-12-23T21:15:50+08:00">2023-12-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Stanford-CS144/" itemprop="url" rel="index"><span itemprop="name">Stanford-CS144</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Checkpoint-6-putting-it-all-together"><a href="#Checkpoint-6-putting-it-all-together" class="headerlink" title="Checkpoint 6: putting it all together"></a>Checkpoint 6: putting it all together</h1><h2 id="1-Overview"><a href="#1-Overview" class="headerlink" title="1. Overview"></a>1. Overview</h2><p>Lab6 是一个选择性的实验，在前 6 个实验中我们已经完成了网络的框架：</p>
+<ol>
+<li>Checkpoint 0 (a reliable byte stream)；</li>
+<li>Checkpoints 1–3 (the Transmission Control Protocol)；</li>
+<li>Checkpoint 4 (an IP/Ethernet network interface)；</li>
+<li>Checkpoint 5 (an IP router)， </li>
+</ol>
+<p>该实验的目的是使用前述的网络栈实现真实的网络通信，这需要我们有个 partner， 或者一人分饰两角。</p>
+<a id="more"></a>
+
+<h2 id="3-The-Network"><a href="#3-The-Network" class="headerlink" title="3. The Network"></a>3. The Network</h2><p>该实验需要一对可行的网络栈组合成一个真实的网络通信环境，两方都需要构建 host 和 router，网络拓扑如下图所示：</p>
+<img src="/2023/12/23/CS144-Lab6/The Network.png" alt="The Network" style="zoom:60%;">
+
+<ol>
+<li><p>对于个人而言，需要使用同一套代码在不同的终端中启用 server 以及 client；</p>
+</li>
+<li><p>为了使用 relay，需要选择任意的一个 1024 到 64000 之间的偶数以区分不同的 group；</p>
+</li>
+<li><p>server 端在 build 文件夹下输入 ./apps/endtoend server cs144.keithw.org 2048，若顺利的话 server 端会打印如下信息：</p>
+<img src="/2023/12/23/CS144-Lab6/check6_server 端.png" alt="check6_server 端" style="zoom:67%;">
+</li>
+<li><p>client 端在 build 文件夹下输入 ./apps/endtoend client cs144.keithw.org 2048， 若顺利的话 client 端会打印如下信息：</p>
+<img src="/2023/12/23/CS144-Lab6/check6_client 端.png" alt="check6_client 端" style="zoom:67%;">
+
+<p>并且 server 端会额外打印一条信息：New connection from 192.168.0.50:55785.</p>
+</li>
+<li><p>若以上信息都能正确打印，则意味着 TCP 握手成功，若有问题则需要在之前的命令后加上 debug 进入 debug 模式进行调试，这将输出所有交换的以太网帧（ARP 和 TCP/IP 帧）</p>
+<ul>
+<li><p>我们可以在 server 或者 client 任意一端输入数据，就能在相应的另一端看到数据。</p>
+<blockquote>
+<p>实验发现需要在 Terminal 输入需要发送的数据后按下 Ctrl-D 才能发送数据并在 remote 端看到。</p>
+</blockquote>
+</li>
+<li><p>可以使用 Ctrl-D 关闭链接。server 或 client 关闭链接后会终止那一端的 ByteStream 的输出，但仍会持续接收数据直到另一端也关闭了 ByteStream 的输出，我们需要验证这点。</p>
+<blockquote>
+<p>在确保 Terminal 中已经没有数据后，此时按下 Ctrl-D 才会断开 TCP 的链接。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-Sending-a-file"><a href="#4-Sending-a-file" class="headerlink" title="4. Sending a file"></a>4. Sending a file</h2><ol>
+<li><p>将 1MB 大小的随机数写入文件 /tmp/big.txt。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dd <span class="attribute">if</span>=/dev/urandom <span class="attribute">bs</span>=1M <span class="attribute">count</span>=1 <span class="attribute">of</span>=/tmp/big.txt</span><br></pre></td></tr></table></figure></li>
+<li><p>让 server 端在接受连接后立刻发送文件。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.<span class="regexp">/apps/</span>endtoend server cs144.keithw.org even_number &lt; <span class="regexp">/tmp/</span>big.txt</span><br></pre></td></tr></table></figure></li>
+<li><p>让 client 端关闭输出数据流并下载文件。</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="regexp">/dev/</span><span class="keyword">null</span> .<span class="regexp">/apps/</span>endtoend client cs144.keithw.org odd_number &gt; <span class="regexp">/tmp/</span>big-received.txt</span><br></pre></td></tr></table></figure></li>
+<li><p>比较两个文件确保二者一致</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sha256sum <span class="regexp">/tmp/</span>big.txt 或者 sha256sum <span class="regexp">/tmp/</span>big-received.txt</span><br></pre></td></tr></table></figure>
+<p>​    测试结果：</p>
+</li>
+</ol>
+<ul>
+<li>server 端</li>
+</ul>
+<img src="/2023/12/23/CS144-Lab6/server_sending a file.png" alt="server_sending a file" style="zoom:60%;">
+
+<ul>
+<li>client 端</li>
+</ul>
+<img src="/2023/12/23/CS144-Lab6/client_sending a file.png" alt="client_sending a file" style="zoom:60%;">
+
+<ul>
+<li><p>比较 SHA-256 散列值</p>
+<blockquote>
+<p>SHA-256 是一种加密散列函数，用于产生给定输入数据的固定长度（256 位）的哈希值。这种哈希值通常用于验证文件的完整性或检查文件是否在传输过程中被篡改。</p>
+</blockquote>
+</li>
+</ul>
+<img src="/2023/12/23/CS144-Lab6/SHA-256 哈希值对比.png" alt="SHA-256 哈希值对比" style="zoom:67%;">
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        <div class="reward-container">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="君莫良 支付宝">
+        <p>支付宝</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="君莫良 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>君莫良
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2023/12/23/CS144-Lab6/" title="CS144-Lab6">http://coderzqy.github.io/2023/12/23/CS144-Lab6/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag"># 计算机网络</a>
+              <a href="/tags/TCP-IP%E5%8D%8F%E8%AE%AE%E6%A0%88/" rel="tag"># TCP/IP协议栈</a>
+              <a href="/tags/C/" rel="tag"># C++</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/23/CS144-Lab5/" rel="prev" title="CS144-Lab5">
+      <i class="fa fa-chevron-left"></i> CS144-Lab5
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Checkpoint-6-putting-it-all-together"><span class="nav-number">1.</span> <span class="nav-text">Checkpoint 6: putting it all together</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Overview"><span class="nav-number">1.1.</span> <span class="nav-text">1. Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-The-Network"><span class="nav-number">1.2.</span> <span class="nav-text">3. The Network</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Sending-a-file"><span class="nav-number">1.3.</span> <span class="nav-text">4. Sending a file</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="君莫良"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">君莫良</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=1361979685&auto=1&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">君莫良</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>
