@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"coderzqy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":5},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="CS2205 Programming Language Design and Implementation1. Background程序设计语言的发展：机器语言 → 汇编语言 → 高级语言 编译器的作用：把某一种高级语言程序等价地转换成另一种低级语言程序 编译程序的工作过程大致可以分为五个阶段：词法分析、语法分析、语义分析和中间代码生成、代码优化、目标代码生成。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS2205_PLDI">
+<meta property="og:url" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/index.html">
+<meta property="og:site_name" content="CoderZQYのBlog">
+<meta property="og:description" content="CS2205 Programming Language Design and Implementation1. Background程序设计语言的发展：机器语言 → 汇编语言 → 高级语言 编译器的作用：把某一种高级语言程序等价地转换成另一种低级语言程序 编译程序的工作过程大致可以分为五个阶段：词法分析、语法分析、语义分析和中间代码生成、代码优化、目标代码生成。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/编译程序结构框图.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/编译器前后端框架图.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/词法规则-词法分析结果.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/bison运行流程.jpeg">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/词法规则-语法分析结果.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/a2nfa.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/aorb2nfa.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/ab2nfa.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/a_star2nfa.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/(aorb)c.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/re_nfa_dfa_test.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/nfa.png">
+<meta property="og:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/dfa.png">
+<meta property="article:published_time" content="2023-12-30T13:57:33.000Z">
+<meta property="article:modified_time" content="2023-12-30T14:09:08.500Z">
+<meta property="article:author" content="CoderZQY">
+<meta property="article:tag" content="编译原理">
+<meta property="article:tag" content="C&#x2F;C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/编译程序结构框图.png">
+
+<link rel="canonical" href="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<script src="/lib/fireworks.js"></script>
+  <title>CS2205_PLDI | CoderZQYのBlog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CoderZQYのBlog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">个人不定期更新的学习周报</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">44</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">11</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">28</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CoderZQY">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CoderZQYのBlog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CS2205_PLDI
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-12-30 21:57:33 / 修改时间：22:09:08" itemprop="dateCreated datePublished" datetime="2023-12-30T21:57:33+08:00">2023-12-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS2205-PLDI/" itemprop="url" rel="index"><span itemprop="name">CS2205-PLDI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="CS2205-Programming-Language-Design-and-Implementation"><a href="#CS2205-Programming-Language-Design-and-Implementation" class="headerlink" title="CS2205 Programming Language Design and Implementation"></a>CS2205 Programming Language Design and Implementation</h1><h2 id="1-Background"><a href="#1-Background" class="headerlink" title="1. Background"></a>1. Background</h2><p>程序设计语言的发展：<strong>机器语言 → 汇编语言 → 高级语言</strong></p>
+<p>编译器的作用：<strong>把某一种高级语言程序等价地转换成另一种低级语言程序</strong></p>
+<p>编译程序的工作过程大致可以分为五个阶段：词法分析、语法分析、语义分析和中间代码生成、代码优化、目标代码生成。</p>
+<a id="more"></a>
+
+<ol>
+<li><p><strong>词法分析 (lexical analysis)</strong> : 对构成输入源程序的字符串进行扫描和分解，识别出一个个单词符号，即 token，如标识符、常数、界限符等。</p>
+</li>
+<li><p><strong>语法分析 (syntax analysis)</strong> : 在词法分析的基础上，根据语言的语法规则，把单词符号分解成各类语法单位（语法范畴），如：”短语”、”句子”、”子句”、”程序段” 等。输出是一棵抽象语法树 (Abstract Syntax Tree)。</p>
+</li>
+<li><p><strong>语义分析 (semantic analysis)</strong> 和<strong>中间代码 (Intermediate Representation)</strong> 生成：首先对各种语法范畴进行静态语义检查，如果正确则进行中间代码的翻译。该阶段遵循的是语言的语义规则，通常使用属性文法描述语义规则。中间代码的形式有：四元式、三元式、间接三元式、逆波兰记号和树形表示。 </p>
+<p>以三地址码，一种比较简单且常见的中间表示为例：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a = b + c * d;</span><br><span class="line">    ↓↓</span><br><span class="line">t1 = c * d;</span><br><span class="line">a = b + t1;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>代码优化</strong>：从抽象语法树到中间代码，更多考虑的是如何对语句进行等价转换，代码的效率不是主要考虑因素。为了最终生成的程序能够更高效的执行和存储，现代编译器往往会花很大力气去对代码进行优化，而且会不止一次地对代码进行扫描和优化。优化所依循的原则是程序的等价变换规则。其方法有：公共子表达式的提取、循环优化、删除无用代码等。</p>
+</li>
+<li><p><strong>目标代码生成</strong>：以优化后的中间代码作为输入，产生等价的目标代码作为输出。它有赖于硬件系统结构和机器指令含义。如何充分利用寄存器、合理选择指令以生成尽可能短且有效的目标代码等都与目标机器硬件结构有关。 </p>
+</li>
+</ol>
+<img src="/2023/12/30/CS2205-PLDI/编译程序结构框图.png" alt="编译程序结构框图" style="zoom: 67%;">
+
+<h2 id="2-Compiler-Front-end-Task"><a href="#2-Compiler-Front-end-Task" class="headerlink" title="2. Compiler Front-end Task"></a>2. Compiler Front-end Task</h2><p>【编译器前端】词法规则文本的词法分析、语法分析与 DFA 生成</p>
+<img src="/2023/12/30/CS2205-PLDI/编译器前后端框架图.png" alt="编译器前后端框架图" style="zoom:50%;">
+
+<p>​    在使用 Flex 词法分析工具时，”.l” 文件包含用正则表达式表示的词法分析规则与 C 程序编写的处理程序。参考这一格式，设计一种词法规则文本的格式，也包括正则表达式（用含转义符号的字符串表示）与 WhileDeref 程序。任务要求如下：</p>
+<ol>
+<li>完成词法规则问题的词法分析、语法分析与语法树输出。</li>
+<li>由正则表达式生成 NFA，并输出。</li>
+<li>进一步生成 DFA，并输出。</li>
+</ol>
+<h2 id="3-While-语言"><a href="#3-While-语言" class="headerlink" title="3. While 语言"></a>3. While 语言</h2><p>​    下面定义了一个简单的程序语言 while 语言。</p>
+<ul>
+<li><p>常数</p>
+<ul>
+<li><code>N ::= 0 | 1 | ...</code></li>
+<li>While 语言的常数是以非 0 数字开头的一串数字或者 0。</li>
+</ul>
+</li>
+<li><p>保留字</p>
+<ul>
+<li>While 语言的保留字有：var, if, then, else, while, do</li>
+</ul>
+</li>
+<li><p>变量名</p>
+<ul>
+<li><code>V ::= ...</code> </li>
+<li>While 语言变量名的第一个字符为字母或下划线，while 语言的变量名可以包含字母、下划线与数字。例如：<code>a0</code>，<code>__x</code>， <code>leaf_counter</code> 等等都可以是 while 语言的变量名。</li>
+<li>保留字不是变量名。</li>
+</ul>
+</li>
+<li><p>表达式</p>
+<ul>
+<li><p><code>E :: = N | V |-E | E+E | E-E | E*E | E/E | E%E |</code></p>
+<p><code>  E&lt;E | E&lt;=E | E==E | E!=E | E&gt;=E | E&gt;E |</code></p>
+<p><code>E&amp;&amp;E | E||E | !E</code></p>
+</li>
+<li><p>优先级：<code>|| &lt; &amp;&amp; &lt; ! &lt; Comparisons &lt; +,- &lt; *,/,%</code></p>
+</li>
+<li><p>同优先级运算符之间左结合，可以使用小括号改变优先级。例如：<code>a0+1</code>，<code>x&lt;=y&amp;&amp;x&gt;0</code> 等等都是 while 语言的表达式。</p>
+</li>
+</ul>
+</li>
+<li><p>语句</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">C</span> <span class="operator">::</span> <span class="operator">=</span> <span class="variable">var</span> <span class="variable">V</span> <span class="operator">|</span></span><br><span class="line"><span class="variable">V</span> <span class="operator">=</span> <span class="built_in">E</span> <span class="operator">|</span></span><br><span class="line"><span class="built_in">C</span><span class="operator">;</span> <span class="built_in">C</span> <span class="operator">|</span></span><br><span class="line"><span class="variable">if</span> <span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="variable">then</span> <span class="punctuation">&#123;</span> <span class="built_in">C</span> <span class="punctuation">&#125;</span> <span class="variable">else</span> <span class="punctuation">&#123;</span> <span class="built_in">C</span> <span class="punctuation">&#125;</span> <span class="operator">|</span></span><br><span class="line"><span class="variable">while</span> <span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="variable">do</span> <span class="punctuation">&#123;</span> <span class="built_in">C</span> <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<h2 id="4-While-语言-Dereference-Built-in-functions"><a href="#4-While-语言-Dereference-Built-in-functions" class="headerlink" title="4. While 语言 + Dereference + Built-in functions"></a>4. While 语言 + Dereference + Built-in functions</h2></li>
+<li><p>表达式</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">E</span> <span class="operator">::</span> <span class="operator">=</span> <span class="built_in">N</span> <span class="operator">|</span> <span class="variable">V</span> <span class="operator">|-</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">+</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">-</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">*</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">/</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">%</span><span class="built_in">E</span> <span class="operator">|</span></span><br><span class="line"><span class="built_in">E</span><span class="operator">&lt;</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">&lt;=</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">==</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">!=</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">&gt;=</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">&gt;</span><span class="built_in">E</span> <span class="operator">|</span></span><br><span class="line"><span class="built_in">E</span><span class="operator">&amp;&amp;</span><span class="built_in">E</span> <span class="operator">|</span> <span class="built_in">E</span><span class="operator">||</span><span class="built_in">E</span> <span class="operator">|</span> <span class="operator">!</span><span class="built_in">E</span> <span class="operator">|</span> <span class="operator">*</span><span class="built_in">E</span> <span class="operator">|</span></span><br><span class="line"><span class="variable">malloc</span><span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="operator">|</span> <span class="type">read_int</span><span class="punctuation">(</span><span class="punctuation">)</span> <span class="operator">|</span> <span class="type">read_char</span><span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure></li>
+<li><p>语句</p>
+<figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">C</span> <span class="operator">::</span> <span class="operator">=</span> <span class="variable">var</span> <span class="variable">V</span> <span class="operator">|</span></span><br><span class="line"><span class="type">write_int</span><span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="operator">|</span></span><br><span class="line"><span class="type">write_char</span><span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="operator">|</span></span><br><span class="line"><span class="built_in">E</span> <span class="operator">=</span> <span class="built_in">E</span> <span class="operator">|</span></span><br><span class="line"><span class="built_in">C</span><span class="operator">;</span> <span class="built_in">C</span> <span class="operator">|</span></span><br><span class="line"><span class="variable">if</span> <span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="variable">then</span> <span class="punctuation">&#123;</span> <span class="built_in">C</span> <span class="punctuation">&#125;</span> <span class="variable">else</span> <span class="punctuation">&#123;</span> <span class="built_in">C</span> <span class="punctuation">&#125;</span> <span class="operator">|</span></span><br><span class="line"><span class="variable">while</span> <span class="punctuation">(</span><span class="built_in">E</span><span class="punctuation">)</span> <span class="variable">do</span> <span class="punctuation">&#123;</span> <span class="built_in">C</span> <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>While 程序示例 1</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">var</span> x;</span><br><span class="line"><span class="built_in">var</span> <span class="built_in">n</span>;</span><br><span class="line"><span class="built_in">var</span> flag;</span><br><span class="line">x = read_int();</span><br><span class="line"><span class="built_in">n</span> = <span class="number">2</span>;</span><br><span class="line">flag = <span class="number">1</span>;</span><br><span class="line">while (<span class="built_in">n</span> * <span class="built_in">n</span> &lt;= x &amp;&amp; flag) do &#123;</span><br><span class="line"><span class="built_in">if</span> (x % <span class="built_in">n</span> == <span class="number">0</span>)</span><br><span class="line">then &#123; flag = <span class="number">0</span> &#125;</span><br><span class="line">else &#123; <span class="built_in">n</span> = <span class="built_in">n</span> + <span class="number">1</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line">write_int(flag)</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<h2 id="5-Flex-词法分析"><a href="#5-Flex-词法分析" class="headerlink" title="5. Flex 词法分析"></a>5. Flex 词法分析</h2><p>​    在 While+DB 语言中有以下几类标记 (token)：</p>
+<ul>
+<li><p>运算符：<code>+ - * / % &lt; &lt;= == != &gt;= &gt; ! &amp;&amp; ||</code></p>
+</li>
+<li><p>赋值符号：<code>=</code></p>
+</li>
+<li><p>间隔符：<code>( ) &#123; &#125; ;</code></p>
+</li>
+<li><p>自然数：<code>0 1 2 ...</code></p>
+</li>
+<li><p>变量名：<code>a0 __x ...</code></p>
+</li>
+<li><p>保留字：<code>var if then else while do ...</code></p>
+</li>
+<li><p>内置函数名：<code>malloc read_char read_int write_char write_int</code></p>
+</li>
+</ul>
+<p>​    下面是 <code>lang.l</code> 文件中的词法规则部分，每条规则都由 pattern 和 action 组成：</p>
+<ol>
+<li>pattern 使用正则表达式表示，含义为需要匹配的词的规则。</li>
+<li>action 使用代码表示，含义为成功匹配该词后执行的动作。</li>
+</ol>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">%%</span><br><span class="line"><span class="number">0</span>|[<span class="number">1</span>-<span class="number">9</span>][<span class="number">0</span>-<span class="number">9</span>]* &#123;	<span class="comment">// 自然数</span></span><br><span class="line">    yylval.n = build_nat(yytext, yyleng);	<span class="comment">// 需额外存储对应值</span></span><br><span class="line">    <span class="keyword">return</span> TM_NAT;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;var&quot;</span> &#123;	<span class="comment">// 保留字</span></span><br><span class="line">    <span class="keyword">return</span> TM_VAR;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...	<span class="comment">// 省略部分保留字</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;return&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_return;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;func&quot;</span> &#123;	<span class="comment">// 函数名</span></span><br><span class="line">    <span class="keyword">return</span> TM_func;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;proc&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_proc;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">[_A-Za-z][_A-Za-z0-<span class="number">9</span>]* &#123;	<span class="comment">// 标识符</span></span><br><span class="line">    yylval.i = new_str(yytext, yyleng);</span><br><span class="line">    <span class="keyword">return</span> TM_IDENT;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;;&quot;</span> &#123;	<span class="comment">// 间隔符</span></span><br><span class="line">    <span class="keyword">return</span> TM_SEMICOL;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...	<span class="comment">// 省略部分间隔符</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;&#125;&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_RIGHT_BRACE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;+&quot;</span> &#123;	<span class="comment">// 运算符</span></span><br><span class="line">    <span class="keyword">return</span> TM_PLUS;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...	<span class="comment">// 省略部分运算符</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;!=&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_NE;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;=&quot;</span> &#123;	<span class="comment">// 赋值符</span></span><br><span class="line">    <span class="keyword">return</span> TM_ASGNOP;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">[ \t\n\r]    &#123; &#125;;	<span class="comment">// 空白字符</span></span><br><span class="line"></span><br><span class="line">.   &#123;printf(<span class="string">&quot;%s&quot;</span>,yytext);</span><br><span class="line">     <span class="keyword">return</span> -<span class="number">1</span>; &#125;</span><br><span class="line">%%</span><br></pre></td></tr></table></figure>
+<p>​    为了对于上面的词法规则进行词法分析、语法分析，我们可以将每一条规则-动作视作一条匹配语句：每个 pattern 都对应有一个 rules。根据上面 pattern 定义的识别规则，可以抽象成以下五种类型：</p>
+<ol>
+<li>自然数正则规则：pattern：<code>0|[1-9][0-9]*</code>；及对应的 rules；</li>
+<li>标识符正则规则：pattern：<code>[_A-Za-z][_A-Za-z0-9]*</code>；及对应的 rules；</li>
+<li>空白字符正则规则：pattern：<code>[ \t\n\r]</code>；及对应的 rules；</li>
+<li>关键字正则规则：pattern：<code>&quot;[_A-Za-z][_A-Za-z0-9]*&quot;</code>（通过双引号来区别于标识符规则，函数名这里也将其视为一种关键字）；及对应的 rules；</li>
+<li>符号正则规则：pattern：<code>&quot;[^A-Za-z0-9_]&#123;1,2&#125;&quot;</code>（我这里将运算符、分隔符、赋值符均统一成相同的符号正则）；及对应的 rules；</li>
+</ol>
+<p>​    在 <code>lang.l</code> 中增添以下规则：</p>
+<figure class="highlight ceylon"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;0|[1-9][0-9]*&quot;</span> &#123;	<span class="comment">// 识别自然数正则规则</span></span><br><span class="line">    <span class="keyword">return</span> TM<span class="number">_</span>NAT<span class="number">_</span>RE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;[_A-Za-z][_A-Za-z0-9]*&quot;</span> &#123;	<span class="comment">// 识别标识符正则规则</span></span><br><span class="line">    <span class="keyword">return</span> TM<span class="number">_</span>IDENT<span class="number">_</span>RE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;[ \\t\\n\\r]&quot;</span> &#123;	<span class="comment">// 识别空白字符正则规则</span></span><br><span class="line">    <span class="keyword">return</span> TM<span class="number">_</span>BLANK<span class="number">_</span>RE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">\<span class="string">&quot;[_A-Za-z][_A-Za-z0-9]*\&quot;</span> &#123;	<span class="comment">// 识别关键字正则</span></span><br><span class="line">    yylval.i = <span class="keyword">new</span><span class="number">_</span>str(yytext, yyleng);	<span class="comment">// 额外存储关键字的字符串信息</span></span><br><span class="line">    <span class="keyword">return</span> TM<span class="number">_</span>KEYWORD;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">\<span class="string">&quot;[^A-Za-z0-9_]&#123;1,2&#125;\&quot;</span> &#123;	<span class="comment">// 识别符号正则</span></span><br><span class="line">    yylval.i = <span class="keyword">new</span><span class="number">_</span>str(yytext, yyleng);</span><br><span class="line">    <span class="keyword">return</span> TM<span class="number">_</span>SYMBOL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    使用 Flex 工具进行词法分析</p>
+<blockquote>
+<p>Flex 生成的词法分析器的算法流程如下：先根据输入的字符串找到正则表达式的匹配结果（若有多种结果则选<strong>最长</strong>、<strong>最靠前</strong>的），再更新字符串扫描的初始地址，并执行匹配结果对应的处理程序。</p>
+</blockquote>
+<ul>
+<li><p>测试文本文件 <code>sample.jtl</code> 如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>|[<span class="number">1</span>-<span class="number">9</span>][<span class="number">0</span>-<span class="number">9</span>]* &#123; </span><br><span class="line">    <span class="keyword">return</span> TOK_NAT; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;while&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TOK_WHILE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>词法分析结果：</p>
+<img src="/2023/12/30/CS2205-PLDI/词法规则-词法分析结果.png" alt="词法规则-词法分析结果" style="zoom:67%;">
+
+</li>
+</ul>
+<h2 id="6-Bison-语法分析"><a href="#6-Bison-语法分析" class="headerlink" title="6. Bison 语法分析"></a>6. Bison 语法分析</h2><p>​    在 flex 成功识别每一个 token 之后，还需要使用 bison 将这些 token 按照规则不断归约，最后变成程序段。</p>
+<p>​    bison 运行流程如下：</p>
+<img src="/2023/12/30/CS2205-PLDI/bison运行流程.jpeg" alt="bison运行流程" style="zoom:67%;">
+
+<p>​    bison 的代码框架和 flex 完全一致，格式都是：</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">定义<span class="comment">(definations)</span></span><br><span class="line"><span class="meta">%</span><span class="meta">%</span></span><br><span class="line">规则<span class="comment">(rules)</span></span><br><span class="line"><span class="meta">%</span><span class="meta">%</span></span><br><span class="line">代码<span class="comment">(user code)</span></span><br></pre></td></tr></table></figure>
+<p>​    只不过在定义和规则部分，一些写法不同。bison 基于 BNF 定义的规则：rule → BNF action，对于 BNF 中每一个归约方法/产生式，都可以写上 action（花括号括起来）。</p>
+<p>​    下面给出 <code>lang.y</code> 文件增添的主要内容：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">%%</span><br><span class="line">%<span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> n;</span><br><span class="line"><span class="keyword">char</span> * i;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">expr</span> * <span class="title">e</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">cmd</span> * <span class="title">c</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">glob_item</span> * <span class="title">g</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">glob_item_list</span> * <span class="title">f</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">expr_list</span> * <span class="title">h</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">var_list</span> *<span class="title">k</span>;</span></span><br><span class="line"><span class="keyword">void</span> * none;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Terminals</span></span><br><span class="line">%token &lt;i&gt; ... TM_KEYWORD TM_SYMBOL</span><br><span class="line">%token &lt;none&gt; ... TM_NAT_RE TM_IDENT_RE TM_BLANK_RE</span><br><span class="line"></span><br><span class="line">NT_gi:</span><br><span class="line">  ...</span><br><span class="line">| TM_NAT_RE TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE</span><br><span class="line">  &#123;</span><br><span class="line">    $$ = (TNatReDef($<span class="number">3</span>));</span><br><span class="line">  &#125;</span><br><span class="line">| TM_IDENT_RE TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE</span><br><span class="line">  &#123;</span><br><span class="line">    $$ = (TIdentReDef($<span class="number">3</span>));</span><br><span class="line">  &#125;</span><br><span class="line">| TM_BLANK_RE TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE</span><br><span class="line">  &#123;</span><br><span class="line">    $$ = (TBlankReDef($<span class="number">3</span>));</span><br><span class="line">  &#125;</span><br><span class="line">| TM_KEYWORD TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE</span><br><span class="line">  &#123;</span><br><span class="line">    $$ = ((TKeyWordDef($<span class="number">1</span>, $<span class="number">3</span>)));</span><br><span class="line">  &#125;</span><br><span class="line">| TM_SYMBOL TM_LEFT_BRACE NT_CMD TM_RIGHT_BRACE</span><br><span class="line">  &#123;</span><br><span class="line">    $$ = ((TSymbolDef($<span class="number">1</span>, $<span class="number">3</span>)));</span><br><span class="line">  &#125;</span><br><span class="line">;</span><br><span class="line">%%</span><br></pre></td></tr></table></figure>
+<p>​    在 <code>lang.h</code> 中添加对应的函数声明</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TNatReDef(<span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span>;</span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TIdentReDef(<span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span>;</span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TBlankReDef(<span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span>;</span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TKeyWordDef(<span class="params">char</span> <span class="operator">*</span> <span class="params">name</span>, <span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span>;</span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TSymbolDef(<span class="params">char</span> <span class="operator">*</span> <span class="params">name</span>, <span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span>;</span><br></pre></td></tr></table></figure>
+<p>​    在 <code>lang.c</code> 中给出上述函数对应的实现，同时添加一些有关输出的处理逻辑即可。</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TNatReDef(<span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">struct</span> glob_item<span class="operator"> * </span>res = <span class="keyword">new</span><span class="constructor">_glob_item_ptr()</span>;</span><br><span class="line">  res -&gt; t = T_NAT_RE_DEF;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">NAT_RE_DEF</span>.</span></span>body = body;</span><br><span class="line">  return res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TIdentReDef(<span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">struct</span> glob_item<span class="operator"> * </span>res = <span class="keyword">new</span><span class="constructor">_glob_item_ptr()</span>;</span><br><span class="line">  res -&gt; t = T_IDENT_RE_DEF;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">IDENT_RE_DEF</span>.</span></span>body = body;</span><br><span class="line">  return res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TBlankReDef(<span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">struct</span> glob_item<span class="operator"> * </span>res = <span class="keyword">new</span><span class="constructor">_glob_item_ptr()</span>;</span><br><span class="line">  res -&gt; t = T_BLANK_RE_DEF;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">BLANK_RE_DEF</span>.</span></span>body = body;</span><br><span class="line">  return res;</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TKeyWordDef(<span class="params">char</span> <span class="operator">*</span> <span class="params">name</span>, <span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">struct</span> glob_item<span class="operator"> * </span>res = <span class="keyword">new</span><span class="constructor">_glob_item_ptr()</span>;</span><br><span class="line">  res -&gt; t = T_KW_DEF;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">KW_DEF</span>.</span></span>name = name;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">KW_DEF</span>.</span></span>body = body;</span><br><span class="line">  return res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> glob_item<span class="operator"> * </span><span class="constructor">TSymbolDef(<span class="params">char</span> <span class="operator">*</span> <span class="params">name</span>, <span class="params">struct</span> <span class="params">cmd</span> <span class="operator">*</span> <span class="params">body</span>)</span> &#123;</span><br><span class="line">  <span class="keyword">struct</span> glob_item<span class="operator"> * </span>res = <span class="keyword">new</span><span class="constructor">_glob_item_ptr()</span>;</span><br><span class="line">  res -&gt; t = T_SYMBOL_DEF;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">SYMBOL_DEF</span>.</span></span>name = name;</span><br><span class="line">  res -&gt; d.<span class="module-access"><span class="module"><span class="identifier">SYMBOL_DEF</span>.</span></span>body = body;</span><br><span class="line">  return res;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    我的 <code>Makefile</code> 文件</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">lexer.h: lang.l</span></span><br><span class="line">	flex lang.l</span><br><span class="line"></span><br><span class="line"><span class="section">lexer.c: lang.l</span></span><br><span class="line">	flex lang.l</span><br><span class="line"></span><br><span class="line"><span class="section">parser.c: lang.y</span></span><br><span class="line">	bison -o parser.c -d -v lang.y</span><br><span class="line"></span><br><span class="line"><span class="section">parser.h: lang.y</span></span><br><span class="line">	bison -o parser.c -d -v lang.y</span><br><span class="line"></span><br><span class="line"><span class="section">lib.o: lib.c lib.h</span></span><br><span class="line">	gcc -c lib.c</span><br><span class="line"></span><br><span class="line"><span class="section">lang.o: lang.c lang.h lib.h</span></span><br><span class="line">	gcc -c -g lang.c</span><br><span class="line"></span><br><span class="line"><span class="section">parser.o: parser.c parser.h lexer.h lang.h</span></span><br><span class="line">	gcc -c -g parser.c</span><br><span class="line"></span><br><span class="line"><span class="section">lexer.o: lexer.c lexer.h parser.h lang.h</span></span><br><span class="line">	gcc -c -g lexer.c</span><br><span class="line"></span><br><span class="line"><span class="section">main.o: main.c lexer.h parser.h lang.h</span></span><br><span class="line">	gcc -c -g main.c</span><br><span class="line"></span><br><span class="line"><span class="section">main: lang.o parser.o lexer.o lib.o main.o</span></span><br><span class="line">	gcc lang.o parser.o lexer.o lib.o main.o -g -o main</span><br><span class="line"></span><br><span class="line"><span class="section">all: main</span></span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	rm -f lexer.h lexer.c parser.h parser.c *.o main</span><br><span class="line"></span><br><span class="line"><span class="section">%.c: %.y</span></span><br><span class="line"></span><br><span class="line"><span class="section">%.c: %.l</span></span><br><span class="line"></span><br><span class="line">.DEFAULT_GOAL := all</span><br></pre></td></tr></table></figure>
+<p>​    使用 Bison 工具进行语法分析</p>
+<ul>
+<li>测试文本文件 <code>sample.jtl</code> 如下：</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>|[<span class="number">1</span>-<span class="number">9</span>][<span class="number">0</span>-<span class="number">9</span>]* &#123;</span><br><span class="line">  <span class="keyword">var</span> n; </span><br><span class="line">  n = build_nat(yytext, yyleng);</span><br><span class="line">  <span class="keyword">return</span> TM_NAT</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">[_A-Za-z][_A-Za-z0-<span class="number">9</span>]* &#123;</span><br><span class="line">  <span class="keyword">var</span> str; </span><br><span class="line">  str = new_str(yytext, yyleng);</span><br><span class="line">  <span class="keyword">return</span> TM_IDENT</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">[ \t\n\r] &#123; </span><br><span class="line">  <span class="keyword">return</span> TM_BLANK</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;var&quot;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> TM_VAR</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;while&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_WHILE</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;;&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_SEMICOL</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;-&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_MINUS</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;*&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> TM_MUL</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    语法分析结果：</p>
+<img src="/2023/12/30/CS2205-PLDI/词法规则-语法分析结果.png" alt="词法规则-语法分析结果" style="zoom:67%;">
+
+<h2 id="7-正则→NFA→DFA"><a href="#7-正则→NFA→DFA" class="headerlink" title="7. 正则→NFA→DFA"></a>7. 正则→NFA→DFA</h2><p>（1）从中缀表达式转换为后缀表达式</p>
+<p>​    首先要在转换前进行预处理：在正则表达式中添加连接符号 <code>+</code>，因为正则表达式中的<strong>连接运算是隐含</strong>的，没有明确的符号表示，例如 <code>ab</code> 表示 <code>a</code> 和 <code>b</code> 的连接，但是在中缀转后缀的过程中，需要有一个明确的符号来表示连接运算的优先级，否则会导致歧义或错误。例如 <code>a(a|b)*</code> 加 <code>+</code> 后的表达式为 <code>a+(a|b)*</code>，表示 <code>a</code> 和 <code>(a|b)*</code> 是拼接起来的。</p>
+<p>​    此外，如果输入的 Regular_Expression 是 string 类型，则当遇到操作符 <code>[...]</code> 指定一个字符集时，此时并不知道具体要匹配哪一个字符，需要用 string 类型暂时存储，而这时会与同为 string 类型的 Regular_Expression 发生冲突，因此还需要将 Regular_Expression 转为 <code>vector&lt;string&gt;</code> 类型。</p>
+<p>（2）从后缀表达式转换为 NFA</p>
+<p>​    在正式转换之前，还需要定义一些基本单元（结构体）：<code>node</code>、<code>egde</code>、<code>elem</code>、<code>DFAState</code>、<code>DFATransition</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">node</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="comment">// 为了便于后修扩展，这里使用结构体存储节点信息，也可以直接使用 string 类型表示 node。</span></span><br><span class="line">	<span class="built_in">string</span> nodeName;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">edge</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	node startName;</span><br><span class="line">	node endName;</span><br><span class="line">	<span class="built_in">string</span> tranSymbol;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// NFA的组成单元，一个大的 NFA 单元可以是由很多小单元通过规则拼接起来</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">elem</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">int</span> edgeCount;</span><br><span class="line">	edge edgeSet[<span class="number">100</span>];</span><br><span class="line">	node startName;</span><br><span class="line">	node endName;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义 DFA 的状态</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">DFAState</span> &#123;</span></span><br><span class="line">	<span class="built_in">set</span>&lt;<span class="built_in">string</span>&gt; nfaStates;	<span class="comment">//一个包含NFA状态的集合</span></span><br><span class="line">	<span class="built_in">string</span> stateName;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义 DFA 的转换关系</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">DFATransition</span> &#123;</span></span><br><span class="line">	DFAState fromState;</span><br><span class="line">	DFAState toState;</span><br><span class="line">	<span class="built_in">string</span> transitionSymbol;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>​    转换使用 Thompson 构造法</p>
+<ol>
+<li><p>递归终点</p>
+<p>对于<strong>正则表达式为 ε</strong> 或<strong>只有一个符号</strong>构成的情况，则无需递归，</p>
+<img src="/2023/12/30/CS2205-PLDI/a2nfa.png" alt="a2nfa" style="zoom:50%;">
+</li>
+<li><p>子表达式运算的构造规则</p>
+<ol>
+<li><p>或运算 <code>a|b</code> 的构造</p>
+<img src="/2023/12/30/CS2205-PLDI/aorb2nfa.png" alt="aorb2nfa" style="zoom:50%;">
+</li>
+<li><p>连接运算 <code>ab</code> 的构造</p>
+<img src="/2023/12/30/CS2205-PLDI/ab2nfa.png" alt="ab2nfa" style="zoom:50%;">
+</li>
+<li><p>Kleene 闭包 <code>a*</code> 的构造</p>
+<img src="/2023/12/30/CS2205-PLDI/a_star2nfa.png" alt="a_star2nfa" style="zoom:50%;">
+</li>
+<li><p>分组运算 <code>(ab)|c</code> 的构造</p>
+<img src="/2023/12/30/CS2205-PLDI/(aorb)c.png" alt="(aorb)c" style="zoom:50%;">
+
+</li>
+</ol>
+</li>
+</ol>
+<p>（3）输出 NFA，生成 dot 文件</p>
+<blockquote>
+<p>graphviz (Graph Visualization Software) 是一个由 AT&amp;T 实验室启动的开源工具包，用于绘制 DOT 语言脚本描述的图形。</p>
+</blockquote>
+<p>​    DOT 语言语法规则：</p>
+<ol>
+<li>设置图形为有向图，并写入一个左花括号，表示图的开始；</li>
+<li>设置布局为横向布局；</li>
+<li>设置节点形状为圆形，NFA 的结束状态的节点的形状是双圆形；</li>
+<li>写入 NFA 的状态和转移的信息，如：添加起始状态和结束状态的标签 “Start State” 和 “End State”，根据 NFA 的边集，添加状态之间的转移边及对应的转移标签 tranSymbol；</li>
+<li>向文件中写入了一个右花括号，表示图的结束。</li>
+<li>最后，通过命令：<code>dot -Tpng nfa_graph.dot -o nfa.png</code> 可以将生成的 DOT 文件用 DOT 渲染工具（Graphviz）进行可视化。</li>
+</ol>
+<p>​    具体代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//生成NFAdot文件</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">generateDotFile_NFA</span><span class="params">(<span class="keyword">const</span> elem&amp; nfa)</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="built_in">std</span>::ofstream <span class="title">dotFile</span><span class="params">(<span class="string">&quot;nfa_graph.dot&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (dotFile.is_open()) &#123;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;digraph NFA &#123;\n&quot;</span>;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;  rankdir=LR;  // 横向布局\n\n&quot;</span>;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot; node [shape = circle];   // 状态节点\n\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">		dotFile &lt;&lt; nfa.endName.nodeName &lt;&lt; <span class="string">&quot; [shape=doublecircle];\n&quot;</span>;</span><br><span class="line">		<span class="comment">// 添加 NFA 状态</span></span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;  &quot;</span> &lt;&lt; nfa.startName.nodeName &lt;&lt; <span class="string">&quot; [label=\&quot;Start State: &quot;</span> &lt;&lt; nfa.startName.nodeName &lt;&lt; <span class="string">&quot;\&quot;];\n&quot;</span>;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;  &quot;</span> &lt;&lt; nfa.endName.nodeName &lt;&lt; <span class="string">&quot; [label=\&quot;End State: &quot;</span> &lt;&lt; nfa.endName.nodeName &lt;&lt; <span class="string">&quot;\&quot;];\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 添加 NFA 转移</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nfa.edgeCount; i++) &#123;</span><br><span class="line">			<span class="keyword">const</span> edge&amp; currentEdge = nfa.edgeSet[i];</span><br><span class="line">			dotFile &lt;&lt; <span class="string">&quot;  &quot;</span> &lt;&lt; currentEdge.startName.nodeName &lt;&lt; <span class="string">&quot; -&gt; &quot;</span> &lt;&lt; currentEdge.endName.nodeName &lt;&lt; <span class="string">&quot; [label=\&quot;&quot;</span> &lt;&lt; currentEdge.tranSymbol &lt;&lt; <span class="string">&quot;\&quot;];\n&quot;</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;&#125;\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">		dotFile.close();</span><br><span class="line">		<span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;NFA DOT file generated successfully.\n&quot;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="built_in">std</span>::<span class="built_in">cerr</span> &lt;&lt; <span class="string">&quot;Unable to open NFA DOT file.\n&quot;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>（4）通过子集构造法将 NFA 转换为 DFA，并生成 dot 文件</p>
+<p>​    <strong>子集构造法</strong>：将 NFA 的状态集合分成若干个子集，每个子集代表一个 DFA 的状态。子集之间的转移关系，由 NFA 中的转移关系和空转移决定。具体步骤如下：</p>
+<ol>
+<li>计算 NFA 的初始状态的 ε 闭包，即包含初始状态和所有通过空转移可以到达的状态的集合。将这个集合作为 DFA 的初始状态，并标记为未处理。</li>
+<li>从未处理的状态集合中选取一个状态（一般是按照顺序），对于每个输入符号，计算该状态经过该符号可以到达的 NFA 状态的集合，再计算这个集合的 ε 闭包，得到一个新的状态集合。如果这个集合是新出现的，就将其标记为未处理，否则就是已处理的。根据这个过程，建立 DFA 的转移关系。</li>
+<li>重复第 2 步，直到没有未处理的状态集合为止。此时，DFA 的状态集合和转移关系就构造完成了。</li>
+<li>确定 DFA 的终止状态，即包含 NFA 的终止状态的状态集合。</li>
+</ol>
+<p>​    同 NFA，对 DFA 进行可视化：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//生成DFA的dot文件</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">generateDotFile_DFA</span><span class="params">(<span class="built_in">vector</span>&lt;DFAState&gt;&amp; dfaStates, <span class="built_in">vector</span>&lt;DFATransition&gt;&amp; dfaTransitions)</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="built_in">std</span>::ofstream <span class="title">dotFile</span><span class="params">(<span class="string">&quot;dfa_graph.dot&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (dotFile.is_open()) &#123;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;digraph DFA &#123;\n&quot;</span>;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;  rankdir=LR;  // 横向布局\n\n&quot;</span>;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot; node [shape = circle];   // 初始状态\n\n&quot;</span>;</span><br><span class="line">		dotFile &lt;&lt; dfaStates.back().stateName &lt;&lt; <span class="string">&quot;[shape = doublecircle];\n&quot;</span>;</span><br><span class="line">		<span class="comment">// 添加DFA状态</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; state : dfaStates) &#123;</span><br><span class="line">			dotFile &lt;&lt; <span class="string">&quot;  &quot;</span> &lt;&lt; state.stateName;</span><br><span class="line">			dotFile &lt;&lt; <span class="string">&quot; [label=\&quot;State &quot;</span> &lt;&lt; state.stateName;</span><br><span class="line">			<span class="keyword">if</span> (state.stateName == dfaStates.front().stateName) dotFile &lt;&lt; <span class="string">&quot;\\n(startState)&quot;</span>;</span><br><span class="line">			<span class="keyword">if</span> (state.stateName == dfaStates.back().stateName) &#123; </span><br><span class="line">				dotFile &lt;&lt; <span class="string">&quot;\\n(endState)&quot;</span>; </span><br><span class="line">			&#125;</span><br><span class="line">			dotFile &lt;&lt; <span class="string">&quot;\&quot;];\n&quot;</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 添加DFA转移</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; transition : dfaTransitions) &#123;</span><br><span class="line">			dotFile &lt;&lt;<span class="string">&quot;  &quot;</span> &lt;&lt;transition.fromState.stateName &lt;&lt; <span class="string">&quot; -&gt; &quot;</span> &lt;&lt; transition.toState.stateName &lt;&lt; <span class="string">&quot; [label=\&quot;&quot;</span> &lt;&lt; transition.transitionSymbol &lt;&lt; <span class="string">&quot;\&quot;];\n&quot;</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		dotFile &lt;&lt; <span class="string">&quot;&#125;\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">		dotFile.close();</span><br><span class="line">		<span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;DFA DOT file generated successfully.\n&quot;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="built_in">std</span>::<span class="built_in">cerr</span> &lt;&lt; <span class="string">&quot;Unable to open DOT file.\n&quot;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    测试案例：正则表达式：<code>(if)|[_a-zA-Z][_0-9a-zA-Z]*</code></p>
+<p>​    输出：</p>
+<img src="/2023/12/30/CS2205-PLDI/re_nfa_dfa_test.png" alt="re_nfa_dfa_test" style="zoom:60%;">
+
+<ul>
+<li><p><code>dot -Tpng nfa_graph.dot -o nfa.png</code> 可视化 NFA</p>
+<img src="/2023/12/30/CS2205-PLDI/nfa.png" alt="nfa" style="zoom:50%;">
+</li>
+<li><p><code>dot -Tpng dfa_graph.dot -o dfa.png</code> 可视化 DFA</p>
+</li>
+</ul>
+<img src="/2023/12/30/CS2205-PLDI/dfa.png" alt="dfa" style="zoom:50%;">
+
+    </div>
+    
+    
+    
+
+    <div>
+    
+    <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+    
+    </div>
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>CoderZQY
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://coderzqy.github.io/2023/12/30/CS2205-PLDI/" title="CS2205_PLDI">http://coderzqy.github.io/2023/12/30/CS2205-PLDI/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" rel="tag"># 编译原理</a>
+              <a href="/tags/C-C/" rel="tag"># C/C++</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/23/CS144-Lab6/" rel="prev" title="CS144-Lab6">
+      <i class="fa fa-chevron-left"></i> CS144-Lab6
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CS2205-Programming-Language-Design-and-Implementation"><span class="nav-number">1.</span> <span class="nav-text">CS2205 Programming Language Design and Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Background"><span class="nav-number">1.1.</span> <span class="nav-text">1. Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Compiler-Front-end-Task"><span class="nav-number">1.2.</span> <span class="nav-text">2. Compiler Front-end Task</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-While-%E8%AF%AD%E8%A8%80"><span class="nav-number">1.3.</span> <span class="nav-text">3. While 语言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-While-%E8%AF%AD%E8%A8%80-Dereference-Built-in-functions"><span class="nav-number">1.4.</span> <span class="nav-text">4. While 语言 + Dereference + Built-in functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-Flex-%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90"><span class="nav-number">1.5.</span> <span class="nav-text">5. Flex 词法分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Bison-%E8%AF%AD%E6%B3%95%E5%88%86%E6%9E%90"><span class="nav-number">1.6.</span> <span class="nav-text">6. Bison 语法分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E6%AD%A3%E5%88%99%E2%86%92NFA%E2%86%92DFA"><span class="nav-number">1.7.</span> <span class="nav-text">7. 正则→NFA→DFA</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="CoderZQY"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">CoderZQY</p>
+  <div class="site-description" itemprop="description">世人慌慌张张，不过图碎银几两</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">44</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/CoderZQY" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;CoderZQY" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+      <div id="music163player">
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 		src="//music.163.com/outchain/player?type=2&id=1361979685&auto=1&height=66">
+	</iframe>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">CoderZQY</span>
+</div>
+<!--
+-->
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date();
+    function createtime() {
+        var grt= new Date("01/01/2021 00:00:00");
+        now.setTime(now.getTime()+250);
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days);
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours);
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;}
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;}
+        document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 ";
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+setInterval("createtime()",250);
+</script>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+
+<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

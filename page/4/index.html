@@ -123,17 +123,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">42</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">44</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">11</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">27</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">28</span></a>
 
   </li>
   </ul>
@@ -159,6 +159,99 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/05/20/LL1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CoderZQY">
+      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CoderZQYのBlog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/05/20/LL1/" class="post-title-link" itemprop="url">LL1</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-20 21:24:28" itemprop="dateCreated datePublished" datetime="2021-05-20T21:24:28+08:00">2021-05-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-30 23:39:05" itemprop="dateModified" datetime="2021-05-30T23:39:05+08:00">2021-05-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">编译原理</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="编译原理实验3——LL-1-文法分析实现"><a href="#编译原理实验3——LL-1-文法分析实现" class="headerlink" title="编译原理实验3——LL(1)文法分析实现"></a>编译原理实验3——LL(1)文法分析实现</h1><h2 id="1、LL-1-文法介绍"><a href="#1、LL-1-文法介绍" class="headerlink" title="1、LL(1)文法介绍"></a>1、LL(1)文法介绍</h2><p>对文法G的句子进行确定的自顶向下语法分析的充分必要条件是：G的任意两个具有相同左部的产生式A—&gt;α|β 满足下列条件：</p>
+<p>（1）如果α、β均不能推导出ε，则 FIRST(α) ∩ FIRST(β) = ∅。</p>
+<p>（2）α 和 β 至多有一个能推导出 ε。</p>
+<p>（3）如果 β *═&gt; ε，则 FIRST(α) ∩ FOLLOW(A) = ∅。</p>
+<p>将满足上述条件的文法称为LL(1)文法。</p>
+<h2 id="2、实验要求"><a href="#2、实验要求" class="headerlink" title="2、实验要求"></a>2、实验要求</h2><ol>
+<li>给定文法构造FIRST集、SELECT集与FOLLOW集。</li>
+<li>构造文法预测分析表。</li>
+<li>进行语法分析，构造语法分析过程表</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/05/20/LL1/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+    
+    </div>
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -485,84 +578,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://coderzqy.github.io/2021/03/17/Android-Calculator/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="CoderZQY">
-      <meta itemprop="description" content="世人慌慌张张，不过图碎银几两">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="CoderZQYのBlog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/03/17/Android-Calculator/" class="post-title-link" itemprop="url">Android_Calculator</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-03-17 11:18:42 / 修改时间：12:09:31" itemprop="dateCreated datePublished" datetime="2021-03-17T11:18:42+08:00">2021-03-17</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Java课程设计——基于Android的计算器实现"><a href="#Java课程设计——基于Android的计算器实现" class="headerlink" title="Java课程设计——基于Android的计算器实现"></a>Java课程设计——基于Android的计算器实现</h1><h2 id="1、基本要求"><a href="#1、基本要求" class="headerlink" title="1、基本要求"></a>1、基本要求</h2><p>​    功能：完成一个基本的计算器程序。界面可以是GUI方式，也<strong>可以是字符形式的命令行方式</strong>。能实现：加、减、乘、除、<strong>乘方（使用符号^）及</strong>括号的运算。运行对象是<strong>整数</strong>（能<strong>实现GUI界面的且带小数点的实</strong>数运算可以<strong>晋升为良好级别</strong>。）</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/03/17/Android-Calculator/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-    
-    </div>
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -634,20 +649,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-count">28</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
